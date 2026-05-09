@@ -1,9 +1,9 @@
-package com.eco.category.controller;
+package com.eco.account.controller;
 
-import com.eco.category.dto.CategoryResponse;
-import com.eco.category.dto.CreateCategoryRequest;
-import com.eco.category.dto.UpdateCategoryRequest;
-import com.eco.category.service.CategoryService;
+import com.eco.account.dto.AccountResponse;
+import com.eco.account.dto.CreateAccountRequest;
+import com.eco.account.dto.UpdateAccountRequest;
+import com.eco.account.service.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,42 +20,42 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/categories")
-public class CategoryController {
+@RequestMapping("/accounts")
+public class AccountController {
 
-    private final CategoryService categoryService;
+    private final AccountService accountService;
 
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
+    public AccountController(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @GetMapping
-    public List<CategoryResponse> findAll() {
-        return categoryService.findAll();
+    public List<AccountResponse> findAll() {
+        return accountService.findAll();
     }
 
     @GetMapping("/{id}")
-    public CategoryResponse findById(@PathVariable UUID id) {
-        return categoryService.findById(id);
+    public AccountResponse findById(@PathVariable UUID id) {
+        return accountService.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request) {
-        return categoryService.create(request);
+    public AccountResponse create(@RequestBody @Valid CreateAccountRequest request) {
+        return accountService.create(request);
     }
 
     @PutMapping("/{id}")
-    public CategoryResponse update(
+    public AccountResponse update(
             @PathVariable UUID id,
-            @RequestBody @Valid UpdateCategoryRequest request
+            @RequestBody @Valid UpdateAccountRequest request
     ) {
-        return categoryService.update(id, request);
+        return accountService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivate(@PathVariable UUID id) {
-        categoryService.deactivate(id);
+        accountService.deactivate(id);
     }
 }
