@@ -1,0 +1,30 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Java / Spring Boot
+backend/target/
+backend/.gradle/
+backend/build/
+backend/*.log
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
