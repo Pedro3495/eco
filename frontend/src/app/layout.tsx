@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Eco Finanças",
-  description: "PWA pessoal de controle financeiro",
+  description: "PWA pessoal de controle financeiro. Acompanhe receitas, despesas e metas de forma simples.",
   applicationName: "Eco Finanças",
   appleWebApp: {
     capable: true,
@@ -13,13 +13,19 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg",
     apple: "/icon.svg"
+  },
+  manifest: "/manifest.webmanifest",
+  formatDetection: {
+    telephone: false
   }
 };
 
 export const viewport: Viewport = {
   themeColor: "#0f172a",
   width: "device-width",
-  initialScale: 1
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true
 };
 
 export default function RootLayout({
@@ -29,7 +35,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <a href="#main-content" className="skip-link">
+          Pular para conteúdo principal
+        </a>
+        <div id="main-content">{children}</div>
+      </body>
     </html>
   );
 }

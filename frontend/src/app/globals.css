@@ -41,6 +41,25 @@ a {
   text-decoration: none;
 }
 
+/* Skip link para acessibilidade */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
 /* Shell */
 .shell {
   width: min(960px, calc(100% - 24px));
@@ -112,6 +131,7 @@ a {
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   border: 0;
   border-radius: 10px;
@@ -121,11 +141,15 @@ a {
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.05s ease;
 }
 
 .button:hover {
   opacity: 0.9;
+}
+
+.button:active {
+  transform: translateY(1px);
 }
 
 .button:disabled {
@@ -324,6 +348,7 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(130px, auto) auto;
   justify-content: stretch;
+  align-items: center;
 }
 
 .transaction-info {
@@ -407,6 +432,15 @@ a {
   color: var(--ink);
   background: var(--surface);
   cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+
+.icon-button:hover {
+  opacity: 0.85;
+}
+
+.icon-button:active {
+  transform: translateY(1px);
 }
 
 .icon-button:disabled {
@@ -513,6 +547,7 @@ a {
 .button:focus-visible {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+  outline: none;
 }
 
 .form-grid {
@@ -550,6 +585,12 @@ a {
   padding: 32px 16px;
   color: var(--muted);
   font-size: 0.9rem;
+  text-align: center;
+}
+
+.empty-state {
+  flex-direction: column;
+  gap: 10px;
 }
 
 .spin {
@@ -565,7 +606,30 @@ a {
   }
 }
 
-/* Responsive */
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .bar > span {
+    transition: none;
+  }
+
+  .button,
+  .icon-button {
+    transition: none;
+  }
+}
+
+/* Responsive - tablet */
+@media (max-width: 860px) {
+  .filters-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Responsive - mobile */
 @media (max-width: 640px) {
   .shell {
     width: calc(100% - 16px);
@@ -573,18 +637,23 @@ a {
   }
 
   .topbar {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
   }
 
+  .topbar .brand {
+    flex: 1;
+    min-width: 0;
+  }
+
   .toolbar {
-    width: 100%;
+    width: auto;
+    flex-wrap: nowrap;
   }
 
   .toolbar .button {
-    flex: 1;
-    justify-content: center;
+    flex: none;
   }
 
   .metric-grid {
@@ -611,17 +680,37 @@ a {
 
   .transaction-row--actions {
     grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .transaction-row--actions .transaction-info {
+    grid-column: 1 / -1;
   }
 
   .transaction-row--actions .value-positive,
   .transaction-row--actions .value-negative {
     grid-column: 1;
     text-align: left;
+    font-size: 1rem;
   }
 
   .transaction-row--actions .row-actions {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 2;
+    align-self: center;
+  }
+
+  .transaction-desc {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
+  }
+
+  .transaction-meta {
+    font-size: 0.75rem;
+    margin-top: 4px;
   }
 
   .card--wide {
@@ -634,5 +723,58 @@ a {
 
   .metric-value {
     font-size: 1.25rem;
+  }
+
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+  }
+
+  .modal-header {
+    padding: 16px 16px 12px;
+  }
+
+  .transaction-form {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .filters-panel {
+    padding: 16px;
+  }
+
+  .filters-panel .button {
+    width: 100%;
+  }
+
+  .pagination .button {
+    width: 100%;
+  }
+
+  .demo-badge {
+    display: none;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbar {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .toolbar .button {
+    flex: 1;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Loader2, AlertCircle, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Plus, Loader2, AlertCircle, TrendingUp, TrendingDown, Wallet, Receipt } from "lucide-react";
 import { budgets, categorySpending, goals, monthlySummary as mockMonthlySummary, transactions as mockTransactions } from "@/mocks/finance-data";
 import { TransactionModal } from "@/components/TransactionModal";
 import { formatCurrency, formatPercent } from "@/lib/format";
@@ -143,21 +143,21 @@ export default function Home() {
     <main className="shell">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">E</div>
+          <div className="brand-mark" aria-hidden="true">E</div>
           <div>
             <p className="eyebrow">Eco Finanças</p>
             <strong>Dashboard</strong>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="toolbar">
           {isMockFallback && (
             <span className="demo-badge" title="Dados de demonstração">
-              <AlertCircle size={12} />
+              <AlertCircle size={12} aria-hidden="true" />
               modo demonstração
             </span>
           )}
           <button className="button" type="button" onClick={openTransactionModal} disabled={isMockFallback}>
-            <Plus size={16} /> Nova transação
+            <Plus size={16} aria-hidden="true" /> Nova transação
           </button>
           <Link className="button secondary" href="/transactions">
             Ver transações
@@ -165,7 +165,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="summary-section">
+      <section className="summary-section" aria-label="Resumo mensal">
         <div className="panel summary-card">
           <div className="summary-header">
             <span className="section-label">{dashboardMonthLabel}</span>
@@ -173,8 +173,8 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="loading-state">
-              <Loader2 size={20} className="spin" />
+            <div className="loading-state" aria-busy="true" aria-live="polite">
+              <Loader2 size={20} className="spin" aria-hidden="true" />
               <span>Carregando resumo...</span>
             </div>
           ) : (
@@ -182,19 +182,19 @@ export default function Home() {
               <div className="metric-grid">
                 <div className="metric">
                   <span className="metric-label">
-                    <TrendingUp size={14} /> Receitas
+                    <TrendingUp size={14} aria-hidden="true" /> Receitas
                   </span>
                   <strong className="metric-value positive">{formatCurrency(summaryIncome)}</strong>
                 </div>
                 <div className="metric">
                   <span className="metric-label">
-                    <TrendingDown size={14} /> Despesas
+                    <TrendingDown size={14} aria-hidden="true" /> Despesas
                   </span>
                   <strong className="metric-value negative">{formatCurrency(summaryExpense)}</strong>
                 </div>
                 <div className="metric metric--highlight">
                   <span className="metric-label">
-                    <Wallet size={14} /> Saldo
+                    <Wallet size={14} aria-hidden="true" /> Saldo
                   </span>
                   <strong className={summaryBalance >= 0 ? "metric-value positive" : "metric-value negative"}>
                     {formatCurrency(summaryBalance)}
@@ -207,7 +207,7 @@ export default function Home() {
                   <span className="muted">Orçamento usado</span>
                   <strong>{formatPercent(mockMonthlySummary.budgetUsage)}</strong>
                 </div>
-                <div className="bar">
+                <div className="bar" aria-hidden="true">
                   <span style={{ width: `${Math.min(mockMonthlySummary.budgetUsage, 100)}%` }} />
                 </div>
               </div>
@@ -224,23 +224,24 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="loading-state">
-              <Loader2 size={20} className="spin" />
+            <div className="loading-state" aria-busy="true" aria-live="polite">
+              <Loader2 size={20} className="spin" aria-hidden="true" />
               <span>Carregando transações...</span>
             </div>
           ) : error && !isMockFallback ? (
-            <div className="empty-state">
-              <AlertCircle size={20} />
+            <div className="empty-state" role="alert">
+              <AlertCircle size={20} aria-hidden="true" />
               <span>{error}</span>
             </div>
           ) : transactions.length === 0 ? (
             <div className="empty-state">
+              <Receipt size={20} aria-hidden="true" />
               <span>Nenhuma transação encontrada para este mês.</span>
             </div>
           ) : (
-            <div className="transaction-list">
+            <div className="transaction-list" role="list">
               {transactions.map((tx) => (
-                <div className="transaction-row" key={tx.id}>
+                <div className="transaction-row" role="listitem" key={tx.id}>
                   <div className="transaction-info">
                     <strong className="transaction-desc">{tx.description}</strong>
                     <span className="transaction-meta">
@@ -269,7 +270,7 @@ export default function Home() {
                   <strong>{category.name}</strong>
                   <p className="muted">{formatCurrency(category.total)} no mês</p>
                 </div>
-                <span className="category-dot" style={{ backgroundColor: category.color }} />
+                <span className="category-dot" style={{ backgroundColor: category.color }} aria-hidden="true" />
               </div>
             ))}
           </div>
@@ -291,7 +292,7 @@ export default function Home() {
                       {formatCurrency(budget.spent)} / {formatCurrency(budget.limit)}
                     </span>
                   </div>
-                  <div className="bar">
+                  <div className="bar" aria-hidden="true">
                     <span style={{ width: `${usage}%` }} />
                   </div>
                 </div>
@@ -314,7 +315,7 @@ export default function Home() {
                     <strong>{goal.name}</strong>
                     <span className="muted">{formatPercent(usage)}</span>
                   </div>
-                  <div className="bar">
+                  <div className="bar" aria-hidden="true">
                     <span style={{ width: `${usage}%` }} />
                   </div>
                 </div>

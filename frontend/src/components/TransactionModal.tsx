@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Loader2, Plus, X } from "lucide-react";
 import {
   Account,
@@ -69,10 +69,51 @@ export function TransactionModal({
 }: TransactionModalProps) {
   const [form, setForm] = useState(() => buildInitialForm(accounts, categories, transaction));
   const isEditing = Boolean(transaction);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setForm(buildInitialForm(accounts, categories, transaction));
   }, [accounts, categories, transaction]);
+
+  useEffect(() => {
+    previousActiveElement.current = document.activeElement as HTMLElement;
+    document.body.style.overflow = "hidden";
+
+    const timer = setTimeout(() => {
+      firstInputRef.current?.focus();
+    }, 50);
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !saving) {
+        onClose();
+      }
+      if (event.key === "Tab" && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+      clearTimeout(timer);
+      previousActiveElement.current?.focus();
+    };
+  }, [onClose, saving]);
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => categoryMatchesType(category, form.type)),
@@ -107,54 +148,71 @@ export function TransactionModal({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation">
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="transaction-form-title">
+    <div className="modal-backdrop" role="presentation" onClick={(e) => {
+      if (e.target === e.currentTarget && !saving) {
+        onClose();
+      }
+    }}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="transaction-form-title"
+        aria-describedby={error ? "transaction-form-error" : undefined}
+        ref={modalRef}
+      >
         <div className="modal-header">
           <div>
             <span className="section-label">Transação</span>
             <h2 id="transaction-form-title">{isEditing ? "Editar transação" : "Nova transação"}</h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar" disabled={saving}>
-            <X size={18} />
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar modal" disabled={saving}>
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         <form className="transaction-form" onSubmit={handleSubmit}>
-          <label>
+          <label htmlFor="tx-description">
             Descrição
             <input
+              id="tx-description"
+              ref={firstInputRef}
               value={form.description}
               onChange={(event) => updateForm("description", event.target.value)}
               required
               maxLength={120}
+              autoComplete="off"
             />
           </label>
 
           <div className="form-grid">
-            <label>
+            <label htmlFor="tx-amount">
               Valor
               <input
+                id="tx-amount"
                 type="number"
                 min="0.01"
                 step="0.01"
                 value={form.amount}
                 onChange={(event) => updateForm("amount", event.target.value)}
                 required
+                inputMode="decimal"
               />
             </label>
 
-            <label>
+            <label htmlFor="tx-type">
               Tipo
-              <select value={form.type} onChange={(event) => updateForm("type", event.target.value)}>
+              <select id="tx-type" value={form.type} onChange={(event) => updateForm("type", event.target.value)}>
                 <option value="EXPENSE">Despesa</option>
                 <option value="INCOME">Receita</option>
               </select>
             </label>
           </div>
 
-          <label>
+          <label htmlFor="tx-date">
             Data
             <input
+              id="tx-date"
               type="date"
               value={form.occurredAt}
               onChange={(event) => updateForm("occurredAt", event.target.value)}
@@ -163,9 +221,10 @@ export function TransactionModal({
           </label>
 
           <div className="form-grid">
-            <label>
+            <label htmlFor="tx-account">
               Conta
               <select
+                id="tx-account"
                 value={form.accountId}
                 onChange={(event) => updateForm("accountId", event.target.value)}
                 required
@@ -177,9 +236,10 @@ export function TransactionModal({
               </select>
             </label>
 
-            <label>
+            <label htmlFor="tx-category">
               Categoria
               <select
+                id="tx-category"
                 value={form.categoryId}
                 onChange={(event) => updateForm("categoryId", event.target.value)}
                 required
@@ -192,9 +252,10 @@ export function TransactionModal({
             </label>
           </div>
 
-          <label>
+          <label htmlFor="tx-note">
             Nota
             <textarea
+              id="tx-note"
               value={form.note}
               onChange={(event) => updateForm("note", event.target.value)}
               rows={3}
@@ -203,8 +264,8 @@ export function TransactionModal({
           </label>
 
           {error && (
-            <div className="form-error">
-              <AlertCircle size={16} />
+            <div className="form-error" id="transaction-form-error" role="alert">
+              <AlertCircle size={16} aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
@@ -213,8 +274,8 @@ export function TransactionModal({
             <button className="button secondary" type="button" onClick={onClose} disabled={saving}>
               Cancelar
             </button>
-            <button className="button" type="submit" disabled={saving}>
-              {saving ? <Loader2 size={16} className="spin" /> : <Plus size={16} />}
+            <button className="button" type="submit" disabled={saving} aria-busy={saving}>
+              {saving ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
               Salvar
             </button>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
 import { TransactionModal } from "@/components/TransactionModal";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -185,7 +185,7 @@ export default function TransactionsPage() {
     <main className="shell">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">E</div>
+          <div className="brand-mark" aria-hidden="true">E</div>
           <div>
             <p className="eyebrow">Eco Finanças</p>
             <strong>Transações</strong>
@@ -196,49 +196,51 @@ export default function TransactionsPage() {
             Dashboard
           </Link>
           <button className="button" type="button" onClick={openCreateModal}>
-            <Plus size={16} /> Nova transação
+            <Plus size={16} aria-hidden="true" /> Nova transação
           </button>
         </div>
       </header>
 
-      <section className="panel card filters-panel">
+      <section className="panel card filters-panel" aria-label="Filtros de transações">
         <div className="filters-grid">
-          <label>
+          <label htmlFor="filter-start-date">
             Início
             <input
+              id="filter-start-date"
               type="date"
               value={filters.startDate}
               onChange={(event) => updateFilter("startDate", event.target.value)}
             />
           </label>
-          <label>
+          <label htmlFor="filter-end-date">
             Fim
             <input
+              id="filter-end-date"
               type="date"
               value={filters.endDate}
               onChange={(event) => updateFilter("endDate", event.target.value)}
             />
           </label>
-          <label>
+          <label htmlFor="filter-type">
             Tipo
-            <select value={filters.type} onChange={(event) => updateFilter("type", event.target.value)}>
+            <select id="filter-type" value={filters.type} onChange={(event) => updateFilter("type", event.target.value)}>
               <option value="">Todos</option>
               <option value="EXPENSE">Despesa</option>
               <option value="INCOME">Receita</option>
             </select>
           </label>
-          <label>
+          <label htmlFor="filter-account">
             Conta
-            <select value={filters.accountId} onChange={(event) => updateFilter("accountId", event.target.value)}>
+            <select id="filter-account" value={filters.accountId} onChange={(event) => updateFilter("accountId", event.target.value)}>
               <option value="">Todas</option>
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>{account.name}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label htmlFor="filter-category">
             Categoria
-            <select value={filters.categoryId} onChange={(event) => updateFilter("categoryId", event.target.value)}>
+            <select id="filter-category" value={filters.categoryId} onChange={(event) => updateFilter("categoryId", event.target.value)}>
               <option value="">Todas</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>{category.name}</option>
@@ -256,7 +258,7 @@ export default function TransactionsPage() {
         </div>
       </section>
 
-      <section className="panel card">
+      <section className="panel card" aria-label="Lista de transações">
         <div className="card-header row">
           <div>
             <span className="section-label">Histórico</span>
@@ -268,23 +270,24 @@ export default function TransactionsPage() {
         </div>
 
         {loading ? (
-          <div className="loading-state">
-            <Loader2 size={20} className="spin" />
+          <div className="loading-state" aria-busy="true" aria-live="polite">
+            <Loader2 size={20} className="spin" aria-hidden="true" />
             <span>Carregando transações...</span>
           </div>
         ) : error ? (
-          <div className="empty-state">
-            <AlertCircle size={20} />
+          <div className="empty-state" role="alert">
+            <AlertCircle size={20} aria-hidden="true" />
             <span>{error}</span>
           </div>
         ) : transactions.length === 0 ? (
           <div className="empty-state">
+            <Receipt size={20} aria-hidden="true" />
             <span>Nenhuma transação encontrada.</span>
           </div>
         ) : (
-          <div className="transaction-list">
+          <div className="transaction-list" role="list">
             {transactions.map((transaction) => (
-              <div className="transaction-row transaction-row--actions" key={transaction.id}>
+              <div className="transaction-row transaction-row--actions" role="listitem" key={transaction.id}>
                 <div className="transaction-info">
                   <strong className="transaction-desc">{transaction.description}</strong>
                   <span className="transaction-meta">
@@ -300,19 +303,19 @@ export default function TransactionsPage() {
                     className="icon-button"
                     type="button"
                     onClick={() => openEditModal(transaction)}
-                    aria-label="Editar transação"
+                    aria-label={`Editar transação ${transaction.description}`}
                     disabled={actionLoading}
                   >
-                    <Pencil size={16} />
+                    <Pencil size={16} aria-hidden="true" />
                   </button>
                   <button
                     className="icon-button danger"
                     type="button"
                     onClick={() => handleDelete(transaction)}
-                    aria-label="Excluir transação"
+                    aria-label={`Excluir transação ${transaction.description}`}
                     disabled={actionLoading}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -321,14 +324,26 @@ export default function TransactionsPage() {
         )}
 
         <div className="pagination">
-          <button className="button secondary" type="button" onClick={() => goToPage(page - 1)} disabled={!canGoBack || loading}>
-            <ChevronLeft size={16} /> Anterior
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => goToPage(page - 1)}
+            disabled={!canGoBack || loading}
+            aria-label="Página anterior"
+          >
+            <ChevronLeft size={16} aria-hidden="true" /> Anterior
           </button>
-          <span className="muted">
+          <span className="muted" aria-live="polite">
             Página {totalPages === 0 ? 0 : page + 1} de {totalPages}
           </span>
-          <button className="button secondary" type="button" onClick={() => goToPage(page + 1)} disabled={!canGoForward || loading}>
-            Próxima <ChevronRight size={16} />
+          <button
+            className="button secondary"
+            type="button"
+            onClick={() => goToPage(page + 1)}
+            disabled={!canGoForward || loading}
+            aria-label="Próxima página"
+          >
+            Próxima <ChevronRight size={16} aria-hidden="true" />
           </button>
         </div>
       </section>
