@@ -35,12 +35,13 @@ Eco/
     BACKLOG.md
     API_CONTRACT.md
   frontend/
+    public/
     src/
     package.json
     README.md
 ```
 
-O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui uma versao mockada em Next.js e sera integrado ao backend real em uma proxima etapa.
+O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui dashboard e gerenciamento de transacoes integrados com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
 
 ## Stack
 
@@ -66,7 +67,9 @@ O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja
 
 ### Frontend
 
-- Next.js
+- Next.js 16
+- React 19
+- CSS puro
 - PWA mobile-first
 - Interface responsiva para desktop
 
@@ -212,11 +215,78 @@ Backend implementado ate agora:
 
 Frontend:
 
-- Next.js com tela mockada;
-- dados ainda vêm de `frontend/src/mocks/finance-data.ts`;
-- a integracao com a API sera feita em outra sessao/modelo, usando este contrato como base.
+- Next.js com dashboard integrado ao backend;
+- client HTTP em `frontend/src/lib/api.ts`;
+- fallback para mocks quando o backend esta desligado;
+- criacao de transacao pelo dashboard;
+- tela `/transactions` com filtros, paginacao, criacao, edicao e exclusao;
+- PWA base com manifest, tema mobile e icone.
 
 A ordem sugerida de implementacao esta em [BACKLOG.md](./docs/BACKLOG.md).
+
+## Rodar Localmente
+
+### Backend
+
+Subir PostgreSQL:
+
+```powershell
+cd backend
+docker compose up -d
+```
+
+Rodar Spring Boot:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+API local:
+
+```text
+http://localhost:8080/api
+```
+
+Swagger:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+### Frontend
+
+Instalar dependencias e rodar:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+App local:
+
+```text
+http://localhost:3000
+```
+
+Se precisar trocar a URL da API, crie `frontend/.env.local`:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
+```
+
+## Versao Demonstravel
+
+O projeto ja possui uma primeira versao funcional full stack para portfolio:
+
+- cadastro e listagem de contas/categorias via backend;
+- CRUD de transacoes;
+- dashboard mensal simples;
+- filtros e paginacao de transacoes;
+- frontend responsivo com PWA base;
+- testes backend e build frontend.
+
+Ainda nao e o MVP completo descrito no escopo. Faltam autenticacao, usuario real, transferencias, cartao, orcamentos, metas, dashboard completo e deploy.
 
 ## Regras Financeiras Importantes
 

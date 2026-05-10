@@ -1,25 +1,26 @@
 # Eco Frontend
 
-Frontend em Next.js ainda mockado.
+Frontend em Next.js do Eco, um PWA pessoal de controle financeiro.
 
-## Objetivo
+## Stack
 
-- Mostrar o produto visualmente.
-- Testar fluxo mobile-first.
-- Servir como apoio de portfolio.
-- Permitir que o backend seja implementado manualmente em Java sem bloquear a interface.
+- Next.js 16
+- React 19
+- TypeScript
+- CSS puro
+- Lucide React
 
 ## Rodar Localmente
 
 Instalar dependencias:
 
-```bash
+```powershell
 npm install
 ```
 
-Rodar:
+Rodar em desenvolvimento:
 
-```bash
+```powershell
 npm run dev
 ```
 
@@ -29,29 +30,70 @@ Abrir:
 http://localhost:3000
 ```
 
-## Estado Atual
-
-Este frontend usa dados mockados em `src/mocks/finance-data.ts`.
-
-O backend Spring Boot ja possui endpoints suficientes para a primeira integracao:
-
-- `GET http://localhost:8080/api/reports/monthly-summary?year=2026&month=5`
-- `GET http://localhost:8080/api/transactions?page=0&size=10`
-- `GET http://localhost:8080/api/categories`
-- `GET http://localhost:8080/api/accounts`
-
-A integracao do frontend sera feita com outro modelo de IA via opencode/Kimi. Use `../docs/API_CONTRACT.md` e `../docs/FRONTEND_HANDOFF_KIMI.md` como fonte do contrato atual.
-
-O backend ja permite CORS para:
+Por padrao, o frontend usa:
 
 ```text
-http://localhost:3000
+http://localhost:8080/api
 ```
 
-## Proxima Integracao Recomendada
+Para alterar, crie `.env.local`:
 
-1. Criar client HTTP em `src/lib/api.ts`.
-2. Configurar base URL `http://localhost:8080/api`.
-3. Trocar o card de resumo mensal para consumir `/reports/monthly-summary`.
-4. Trocar lista de transacoes para consumir `/transactions?page=0&size=10`.
-5. Tratar loading/erro simples.
+```text
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
+```
+
+## Backend Necessario
+
+Antes de usar os fluxos reais:
+
+```powershell
+cd ..\backend
+docker compose up -d
+.\mvnw.cmd spring-boot:run
+```
+
+## Funcionalidades Atuais
+
+- Dashboard integrado ao backend.
+- Resumo mensal via `GET /reports/monthly-summary`.
+- Ultimas transacoes via `GET /transactions`.
+- Criacao de transacao via `POST /transactions`.
+- Tela `/transactions` com filtros por periodo, tipo, conta e categoria.
+- Edicao via `PUT /transactions/{id}`.
+- Exclusao via `DELETE /transactions/{id}`.
+- Fallback para mocks quando a API esta indisponivel no dashboard.
+- PWA base com manifest, tema mobile e icone.
+
+## Estrutura Relevante
+
+```text
+src/app/page.tsx
+src/app/transactions/page.tsx
+src/components/TransactionModal.tsx
+src/lib/api.ts
+src/lib/format.ts
+src/mocks/finance-data.ts
+```
+
+## Scripts
+
+Build de producao:
+
+```powershell
+npm run build
+```
+
+Rodar producao local apos build:
+
+```powershell
+npm run start
+```
+
+## Pendencias Frontend
+
+- Tela de login quando auth/JWT existir no backend.
+- Client HTTP autenticado com Bearer token e refresh token.
+- Telas dedicadas de contas e categorias.
+- Telas de orcamentos e metas quando os endpoints existirem.
+- Service worker/offline cache mais completo.
+- Refinos visuais para portfolio, screenshots e responsividade final.

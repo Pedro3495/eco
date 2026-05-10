@@ -1,9 +1,25 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Eco Financas",
-  description: "PWA pessoal de controle financeiro"
+  title: "Eco Finanças",
+  description: "PWA pessoal de controle financeiro",
+  applicationName: "Eco Finanças",
+  appleWebApp: {
+    capable: true,
+    title: "Eco",
+    statusBarStyle: "black-translucent"
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg"
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1
 };
 
 export default function RootLayout({
@@ -17,4 +33,3 @@ export default function RootLayout({
     </html>
   );
 }
-

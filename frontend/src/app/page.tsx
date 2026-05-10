@@ -1,10 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, ArrowUpRight, Loader2, AlertCircle, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import Link from "next/link";
+import { Plus, Loader2, AlertCircle, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { budgets, categorySpending, goals, monthlySummary as mockMonthlySummary, transactions as mockTransactions } from "@/mocks/finance-data";
+import { TransactionModal } from "@/components/TransactionModal";
 import { formatCurrency, formatPercent } from "@/lib/format";
-import { getMonthlySummary, getTransactions, MonthlySummary, Transaction } from "@/lib/api";
+import {
+  Account,
+  ApiError,
+  Category,
+  CreateTransactionRequest,
+  createTransaction,
+  getAccounts,
+  getCategories,
+  getMonthlySummary,
+  getTransactions,
+  MonthlySummary,
+  Transaction
+} from "@/lib/api";
+
+const dashboardMonth = new Date();
+const dashboardYear = dashboardMonth.getFullYear();
+const dashboardMonthNumber = dashboardMonth.getMonth() + 1;
+const dashboardMonthLabel = new Intl.DateTimeFormat("pt-BR", {
+  month: "long",
+  year: "numeric"
+}).format(dashboardMonth);
 
 function formatDate(iso: string) {
   const [y, m, d] = iso.split("-");
@@ -17,6 +39,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isMockFallback, setIsMockFallback] = useState(false);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,15 +54,19 @@ export default function Home() {
       setIsMockFallback(false);
 
       try {
-        const [summaryData, txData] = await Promise.all([
-          getMonthlySummary(2026, 5),
-          getTransactions(0, 10)
+        const [summaryData, txData, accountsData, categoriesData] = await Promise.all([
+          getMonthlySummary(dashboardYear, dashboardMonthNumber),
+          getTransactions({ page: 0, size: 10 }),
+          getAccounts(),
+          getCategories()
         ]);
 
         if (cancelled) return;
 
         setSummary(summaryData);
         setTransactions(txData.items);
+        setAccounts(accountsData);
+        setCategories(categoriesData);
       } catch (err) {
         if (cancelled) return;
 
@@ -70,6 +101,44 @@ export default function Home() {
   const summaryExpense = summary?.expense ?? 0;
   const summaryBalance = summary?.balance ?? 0;
 
+  async function refreshDashboard() {
+    const [summaryData, txData] = await Promise.all([
+      getMonthlySummary(dashboardYear, dashboardMonthNumber),
+      getTransactions({ page: 0, size: 10 })
+    ]);
+
+    setSummary(summaryData);
+    setTransactions(txData.items);
+    setIsMockFallback(false);
+  }
+
+  function openTransactionModal() {
+    setSaveError(null);
+    setIsModalOpen(true);
+  }
+
+  function closeTransactionModal() {
+    if (saving) return;
+    setIsModalOpen(false);
+    setSaveError(null);
+  }
+
+  async function handleCreateTransaction(data: CreateTransactionRequest) {
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      await createTransaction(data);
+      await refreshDashboard();
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Falha ao criar transação:", err);
+      setSaveError(err instanceof ApiError ? err.message : "Não foi possível salvar a transação.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main className="shell">
       <header className="topbar">
@@ -87,16 +156,19 @@ export default function Home() {
               modo demonstração
             </span>
           )}
-          <button className="button">
+          <button className="button" type="button" onClick={openTransactionModal} disabled={isMockFallback}>
             <Plus size={16} /> Nova transação
           </button>
+          <Link className="button secondary" href="/transactions">
+            Ver transações
+          </Link>
         </div>
       </header>
 
       <section className="summary-section">
         <div className="panel summary-card">
           <div className="summary-header">
-            <span className="section-label">Maio 2026</span>
+            <span className="section-label">{dashboardMonthLabel}</span>
             <h2 className="summary-title">Resumo mensal</h2>
           </div>
 
@@ -251,6 +323,17 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {isModalOpen && (
+        <TransactionModal
+          accounts={accounts}
+          categories={categories}
+          saving={saving}
+          error={saveError}
+          onClose={closeTransactionModal}
+          onSubmit={handleCreateTransaction}
+        />
+      )}
     </main>
   );
 }
