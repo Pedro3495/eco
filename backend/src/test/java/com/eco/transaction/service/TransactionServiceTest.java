@@ -6,8 +6,10 @@ import com.eco.account.repository.AccountRepository;
 import com.eco.category.model.Category;
 import com.eco.category.model.CategoryKind;
 import com.eco.category.repository.CategoryRepository;
+import com.eco.common.exception.BusinessException;
 import com.eco.common.exception.NotFoundException;
 import com.eco.transaction.dto.CreateTransactionRequest;
+import com.eco.transaction.dto.TransactionPageResponse;
 import com.eco.transaction.dto.TransactionResponse;
 import com.eco.transaction.model.Transaction;
 import com.eco.transaction.model.TransactionType;
@@ -17,6 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -60,14 +66,46 @@ class TransactionServiceTest {
                 "Compra semanal"
         );
 
-        when(transactionRepository.findAll()).thenReturn(List.of(transaction));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<TransactionResponse> response = transactionService.findAll();
+        when(transactionRepository.findAll(anyTransactionSpecification(), anyPageable()))
+                .thenReturn(new PageImpl<>(List.of(transaction), pageable, 1));
 
-        assertThat(response).hasSize(1);
-        assertThat(response.getFirst().getDescription()).isEqualTo("Mercado");
-        assertThat(response.getFirst().getAccountName()).isEqualTo("Conta Principal");
-        assertThat(response.getFirst().getCategoryName()).isEqualTo("Alimentacao");
+        TransactionPageResponse response = transactionService.findAll(null, null, null, null, null, null, pageable);
+
+        assertThat(response.getItems()).hasSize(1);
+        assertThat(response.getItems().getFirst().getDescription()).isEqualTo("Mercado");
+        assertThat(response.getItems().getFirst().getAccountName()).isEqualTo("Conta Principal");
+        assertThat(response.getItems().getFirst().getCategoryName()).isEqualTo("Alimentacao");
+        assertThat(response.getPage()).isZero();
+        assertThat(response.getSize()).isEqualTo(10);
+        assertThat(response.getTotalItems()).isEqualTo(1);
+        assertThat(response.getTotalPages()).isEqualTo(1);
+    }
+
+    @Test
+    void findAllShouldAcceptFilters() {
+        UUID accountId = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
+        LocalDate startDate = LocalDate.of(2026, 5, 1);
+        LocalDate endDate = LocalDate.of(2026, 5, 31);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(transactionRepository.findAll(anyTransactionSpecification(), anyPageable()))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        TransactionPageResponse response = transactionService.findAll(
+                accountId,
+                categoryId,
+                TransactionType.EXPENSE,
+                startDate,
+                endDate,
+                true,
+                pageable
+        );
+
+        assertThat(response.getItems()).isEmpty();
+        verify(transactionRepository).findAll(anyTransactionSpecification(), anyPageable());
     }
 
     @Test
@@ -105,6 +143,42 @@ class TransactionServiceTest {
     }
 
     @Test
+    void createShouldThrowBusinessExceptionWhenCategoryIsIncompatibleWithTransactionType() {
+        UUID accountId = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
+        CreateTransactionRequest request = createTransactionRequest(accountId, categoryId);
+        Account account = new Account("Conta Principal", AccountType.CHECKING, BigDecimal.ZERO);
+        Category category = new Category("Salario", CategoryKind.INCOME, "#2E8B57", "wallet");
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+
+        assertThatThrownBy(() -> transactionService.create(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Categoria incompativel com o tipo da transacao");
+    }
+
+    @Test
+    void createShouldAcceptBothCategoryForAnyTransactionType() {
+        UUID accountId = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
+        CreateTransactionRequest request = createTransactionRequest(accountId, categoryId);
+        Account account = new Account("Conta Principal", AccountType.CHECKING, BigDecimal.ZERO);
+        Category category = new Category("Ajustes", CategoryKind.BOTH, "#64748B", "repeat");
+        account.setId(accountId);
+        category.setId(categoryId);
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransactionResponse response = transactionService.create(request);
+
+        assertThat(response.getCategoryId()).isEqualTo(categoryId);
+        verify(transactionRepository).save(any(Transaction.class));
+    }
+
+    @Test
     void createShouldThrowNotFoundWhenAccountDoesNotExist() {
         UUID accountId = UUID.randomUUID();
         UUID categoryId = UUID.randomUUID();
@@ -127,5 +201,13 @@ class TransactionServiceTest {
         ReflectionTestUtils.setField(request, "categoryId", categoryId);
         ReflectionTestUtils.setField(request, "note", "Compra semanal");
         return request;
+    }
+
+    private Specification<Transaction> anyTransactionSpecification() {
+        return any();
+    }
+
+    private Pageable anyPageable() {
+        return any();
     }
 }

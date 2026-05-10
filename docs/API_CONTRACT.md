@@ -274,9 +274,8 @@ Regra: arquiva a categoria.
 Enums:
 
 ```text
-TransactionType: INCOME, EXPENSE, TRANSFER
-TransactionSource: MANUAL, CSV_IMPORT, XLSX_IMPORT, PDF_IMPORT, OPEN_FINANCE
-CategoryOrigin: MANUAL, AI_SUGGESTED, IMPORTED_RULE, UNKNOWN
+TransactionType atual: INCOME, EXPENSE
+Planejado futuro: TRANSFER, TransactionSource, CategoryOrigin
 ```
 
 ### GET `/transactions`
@@ -284,12 +283,15 @@ CategoryOrigin: MANUAL, AI_SUGGESTED, IMPORTED_RULE, UNKNOWN
 Query params:
 
 ```text
-from=2026-05-01
-to=2026-05-31
+page=0
+size=10
+sort=occurredAt,desc
+startDate=2026-05-01
+endDate=2026-05-31
 type=EXPENSE
 accountId=uuid
 categoryId=uuid
-q=mercado
+active=true
 ```
 
 Response `200`:
@@ -299,36 +301,30 @@ Response `200`:
   "items": [
     {
       "id": "2bcb6ec7-16e4-4f1a-b387-350cf8690001",
-      "type": "EXPENSE",
-      "amount": 85.90,
-      "transactionDate": "2026-05-05",
-      "billingMonth": null,
       "description": "Mercado",
-      "merchantName": "Supermercado X",
-      "account": {
-        "id": "4c657ef7-b84d-452e-9e5e-75d5de410001",
-        "name": "Conta Principal",
-        "type": "CHECKING"
-      },
-      "category": {
-        "id": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
-        "name": "Alimentacao"
-      },
-      "source": "MANUAL",
-      "categoryOrigin": "MANUAL",
-      "installmentGroupId": null,
-      "installmentNumber": null,
-      "installmentTotal": null
+      "amount": 85.90,
+      "type": "EXPENSE",
+      "occurredAt": "2026-05-05",
+      "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
+      "accountName": "Conta Principal",
+      "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
+      "categoryName": "Alimentacao",
+      "note": "Compra semanal",
+      "active": true
     }
   ],
   "page": 0,
-  "size": 20,
+  "size": 10,
   "totalItems": 1,
   "totalPages": 1
 }
 ```
 
-Paginacao pode ser implementada no MVP ou logo apos. Se ainda nao usar paginacao, retornar array simples temporariamente.
+Paginacao atual:
+
+- Padrao: `size=10`.
+- Ordenacao padrao: `occurredAt DESC`.
+- `page` e zero-based: primeira pagina e `page=0`.
 
 ### POST `/transactions`
 
@@ -340,10 +336,9 @@ Request receita:
   "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
   "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170002",
   "amount": 3000.00,
-  "transactionDate": "2026-05-01",
+  "occurredAt": "2026-05-01",
   "description": "Salario",
-  "merchantName": null,
-  "notes": null
+  "note": null
 }
 ```
 
@@ -355,31 +350,19 @@ Request despesa:
   "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
   "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
   "amount": 85.90,
-  "transactionDate": "2026-05-05",
-  "billingMonth": null,
+  "occurredAt": "2026-05-05",
   "description": "Mercado",
-  "merchantName": "Supermercado X",
-  "notes": null
-}
-```
-
-Request despesa no cartao:
-
-```json
-{
-  "type": "EXPENSE",
-  "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410002",
-  "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
-  "amount": 120.00,
-  "transactionDate": "2026-05-20",
-  "billingMonth": "2026-06",
-  "description": "Restaurante",
-  "merchantName": "Restaurante Y",
-  "notes": null
+  "note": null
 }
 ```
 
 Response `201`: objeto de transacao.
+
+Regra atual:
+
+- Categoria `EXPENSE` so aceita transacao `EXPENSE`.
+- Categoria `INCOME` so aceita transacao `INCOME`.
+- Categoria `BOTH` aceita ambos.
 
 ### PUT `/transactions/{id}`
 
@@ -389,12 +372,12 @@ Request:
 {
   "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
   "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
+  "type": "EXPENSE",
   "amount": 90.00,
-  "transactionDate": "2026-05-05",
-  "billingMonth": null,
+  "occurredAt": "2026-05-05",
   "description": "Mercado atualizado",
-  "merchantName": "Supermercado X",
-  "notes": "Compra semanal"
+  "note": "Compra semanal",
+  "active": true
 }
 ```
 
@@ -404,7 +387,7 @@ Response `200`: objeto atualizado.
 
 Response `204`.
 
-Regra: soft delete com `deletedAt`.
+Regra atual: soft delete com `active=false`.
 
 ### POST `/transactions/transfers`
 
@@ -497,6 +480,37 @@ Response `200`:
   ]
 }
 ```
+
+## Reports
+
+### GET `/reports/monthly-summary?year=2026&month=5`
+
+Retorna o resumo financeiro mensal considerando apenas transacoes ativas.
+
+Query params:
+
+```text
+year=2026
+month=5
+```
+
+Response `200`:
+
+```json
+{
+  "income": 0,
+  "expense": 0,
+  "balance": 0
+}
+```
+
+Regras:
+
+- `income` soma transacoes `INCOME` ativas no mes.
+- `expense` soma transacoes `EXPENSE` ativas no mes.
+- `balance` e `income - expense`.
+- Datas consideradas vao do primeiro ao ultimo dia do mes.
+- Valores monetarios usam `BigDecimal` no backend.
 
 ## Budgets
 
@@ -734,4 +748,3 @@ Response `200`:
 - Orcamento considera apenas despesas.
 - IA futura nao altera dados sem confirmacao do usuario.
 - Importacao futura grava candidatos antes de confirmar transacoes finais.
-

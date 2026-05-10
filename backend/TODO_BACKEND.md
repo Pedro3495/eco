@@ -4,9 +4,9 @@ Use este arquivo como trilho de estudo. Marque cada item conforme implementar.
 
 ## 1. Criacao Do Projeto
 
-- [ ] Criar projeto Spring Boot.
-- [ ] Package base: `com.eco`.
-- [ ] Adicionar dependencias:
+- [x] Criar projeto Spring Boot.
+- [x] Package base: `com.eco`.
+- [x] Adicionar dependencias:
   - Spring Web
   - Spring Data JPA
   - Spring Security
@@ -14,23 +14,23 @@ Use este arquivo como trilho de estudo. Marque cada item conforme implementar.
   - Flyway
   - Validation
   - Springdoc OpenAPI
-- [ ] Configurar `application.yml`.
-- [ ] Rodar aplicacao vazia.
-- [ ] Abrir Swagger local.
+- [x] Configurar `application.yaml`.
+- [x] Rodar aplicacao.
+- [x] Abrir Swagger local.
 
 ## 2. Docker E Banco
 
-- [ ] Subir PostgreSQL com Docker Compose.
-- [ ] Conectar aplicacao ao banco.
-- [ ] Criar primeira migration Flyway.
-- [ ] Confirmar que migration roda ao iniciar.
+- [x] Subir PostgreSQL com Docker Compose/local.
+- [x] Conectar aplicacao ao banco.
+- [x] Criar migrations Flyway para categorias, contas e transacoes.
+- [x] Confirmar que migrations rodam ao iniciar.
 
 ## 3. Common
 
-- [ ] Criar padrao de erro.
-- [ ] Criar `@RestControllerAdvice`.
-- [ ] Criar excecoes customizadas.
-- [ ] Criar padrao de auditoria.
+- [x] Criar padrao de erro.
+- [x] Criar `@RestControllerAdvice`.
+- [x] Criar excecoes customizadas.
+- [x] Criar campos basicos de auditoria nas entidades atuais.
 
 ## 4. Auth
 
@@ -45,18 +45,32 @@ Use este arquivo como trilho de estudo. Marque cada item conforme implementar.
 
 ## 5. Modulos De Dominio
 
-- [ ] `Account`.
-- [ ] `Category`.
-- [ ] `Transaction`.
+- [x] `Account`.
+- [x] `Category`.
+- [x] `Transaction`.
+- [x] `Report` mensal simples.
 - [ ] `Budget`.
 - [ ] `Goal`.
 - [ ] `Dashboard`.
 
 ## 6. Testes
 
-- [ ] Testar services principais.
+- [x] Testar services principais.
+- [x] Testar primeiro controller com `@WebMvcTest`.
 - [ ] Testar repositories importantes.
 - [ ] Testar auth.
 - [ ] Testar parcelamento.
 - [ ] Testar transferencia.
 
+## 7. Implementado Recentemente
+
+- [x] Filtros em `GET /transactions`: `accountId`, `categoryId`, `type`, `startDate`, `endDate`, `active`.
+- [x] Paginacao em `GET /transactions`: `page`, `size`, `sort`.
+- [x] Regra categoria x transacao.
+- [x] `GET /reports/monthly-summary`.
+- [x] Documentacao em `docs/JR_BACKEND_NOTES.md`.
+
+## 8. Proximo
+
+- [x] Configurar CORS para o frontend.
+- [x] Preparar handoff para integracao frontend no opencode/Kimi.

@@ -8,6 +8,36 @@ IA, importacao de arquivos e investimentos detalhados ficam preparados na arquit
 
 O projeto tambem serve como portfolio e trilha pratica de estudo em Java/Spring Boot. Por isso, as decisoes devem favorecer clareza, boas praticas, testes e organizacao progressiva, sem inflar o MVP com complexidade desnecessaria.
 
+## Status Atual Do Backend
+
+Ja implementado:
+
+- Java 21 + Spring Boot 3.5.14.
+- PostgreSQL + Flyway.
+- Migrations para `categories`, `accounts` e `transactions`.
+- CRUD de categorias.
+- CRUD de contas.
+- CRUD de transacoes de receita/despesa.
+- Soft delete via `active=false`.
+- Filtros em transacoes por conta, categoria, tipo, periodo e ativo.
+- Paginacao em `GET /api/transactions`.
+- Regra de categoria compativel com tipo da transacao.
+- Resumo mensal simples em `GET /api/reports/monthly-summary`.
+- Tratamento global de erros.
+- Testes unitarios de services.
+- Teste de controller para reports.
+
+Ainda nao implementado:
+
+- Auth/JWT e usuario.
+- Transferencias.
+- Cartao/fatura/billingMonth.
+- Parcelamento.
+- Budgets.
+- Goals.
+- Dashboard completo.
+- Integracao frontend real.
+
 ## Decisoes Do MVP
 
 - Uso inicial: pessoal, para um unico usuario real.
@@ -457,7 +487,7 @@ DELETE /categories/{id}
 ### Transactions
 
 ```text
-GET /transactions?from=YYYY-MM-DD&to=YYYY-MM-DD&type=&accountId=&categoryId=&q=
+GET /transactions?page=&size=&sort=&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&type=&accountId=&categoryId=&active=
 POST /transactions
 POST /transactions/installments
 GET /transactions/{id}
@@ -501,6 +531,7 @@ PATCH /goals/{id}/progress
 ### Dashboard
 
 ```text
+GET /reports/monthly-summary?year=YYYY&month=M
 GET /dashboard/monthly?month=YYYY-MM
 GET /dashboard/categories?month=YYYY-MM
 GET /dashboard/cash-flow?from=YYYY-MM&to=YYYY-MM

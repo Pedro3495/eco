@@ -1,6 +1,6 @@
 # Eco Frontend
 
-Frontend mockado em Next.js para validar a experiencia do PWA antes do backend estar pronto.
+Frontend em Next.js ainda mockado.
 
 ## Objetivo
 
@@ -29,9 +29,29 @@ Abrir:
 http://localhost:3000
 ```
 
-## Importante
+## Estado Atual
 
 Este frontend usa dados mockados em `src/mocks/finance-data.ts`.
 
-Quando a API Spring Boot estiver pronta, trocar os mocks por chamadas HTTP seguindo `../docs/API_CONTRACT.md`.
+O backend Spring Boot ja possui endpoints suficientes para a primeira integracao:
 
+- `GET http://localhost:8080/api/reports/monthly-summary?year=2026&month=5`
+- `GET http://localhost:8080/api/transactions?page=0&size=10`
+- `GET http://localhost:8080/api/categories`
+- `GET http://localhost:8080/api/accounts`
+
+A integracao do frontend sera feita com outro modelo de IA via opencode/Kimi. Use `../docs/API_CONTRACT.md` e `../docs/FRONTEND_HANDOFF_KIMI.md` como fonte do contrato atual.
+
+O backend ja permite CORS para:
+
+```text
+http://localhost:3000
+```
+
+## Proxima Integracao Recomendada
+
+1. Criar client HTTP em `src/lib/api.ts`.
+2. Configurar base URL `http://localhost:8080/api`.
+3. Trocar o card de resumo mensal para consumir `/reports/monthly-summary`.
+4. Trocar lista de transacoes para consumir `/transactions?page=0&size=10`.
+5. Tratar loading/erro simples.

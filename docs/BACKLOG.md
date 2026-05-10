@@ -2,10 +2,10 @@
 
 ## Fase 0 - Preparacao
 
-- [ ] Inicializar repositorio Git.
-- [ ] Criar projeto Spring Boot.
-- [ ] Definir package base `com.eco`.
-- [ ] Adicionar dependencias iniciais:
+- [x] Inicializar repositorio Git.
+- [x] Criar projeto Spring Boot.
+- [x] Definir package base `com.eco`.
+- [x] Adicionar dependencias iniciais:
   - Spring Web
   - Spring Data JPA
   - Spring Security
@@ -14,19 +14,19 @@
   - Bean Validation
   - Springdoc OpenAPI
   - Lombok, se quiser usar
-- [ ] Criar `docker-compose.yml` com PostgreSQL.
+- [x] Criar `docker-compose.yml` com PostgreSQL.
 - [ ] Criar perfis `local` e `test`.
-- [ ] Configurar `application.yml`.
-- [ ] Subir banco local.
-- [ ] Validar conexao da aplicacao com PostgreSQL.
+- [x] Configurar `application.yaml`.
+- [x] Subir banco local.
+- [x] Validar conexao da aplicacao com PostgreSQL.
 
 ## Fase 1 - Base De Banco
 
 - [ ] Criar migration `users`.
 - [ ] Criar migration `refresh_tokens`.
-- [ ] Criar migration `accounts`.
-- [ ] Criar migration `categories`.
-- [ ] Criar migration `transactions`.
+- [x] Criar migration `accounts`.
+- [x] Criar migration `categories`.
+- [x] Criar migration `transactions`.
 - [ ] Criar migration `monthly_budgets`.
 - [ ] Criar migration `category_budgets`.
 - [ ] Criar migration `goals`.
@@ -36,16 +36,16 @@
 
 ## Fase 2 - Common E Infra
 
-- [ ] Criar estrutura `common`.
-- [ ] Criar resposta padrao de erro.
-- [ ] Criar `@RestControllerAdvice`.
+- [x] Criar estrutura `common`.
+- [x] Criar resposta padrao de erro.
+- [x] Criar `@RestControllerAdvice`.
 - [ ] Criar excecoes:
-  - `NotFoundException`
-  - `BusinessRuleException`
+  - [x] `NotFoundException`
+  - [x] `BusinessException`
   - `UnauthorizedException`
 - [ ] Criar base de auditoria para `createdAt` e `updatedAt`.
 - [ ] Definir estrategia de soft delete para transacoes.
-- [ ] Configurar Swagger/OpenAPI local.
+- [x] Configurar Swagger/OpenAPI local.
 
 ## Fase 3 - Autenticacao
 
@@ -66,57 +66,59 @@
 
 ## Fase 4 - Accounts
 
-- [ ] Criar entidade `Account`.
-- [ ] Criar enum `AccountType`.
-- [ ] Criar DTOs.
-- [ ] Criar repository.
-- [ ] Criar service.
-- [ ] Criar controller.
-- [ ] Implementar `GET /accounts`.
-- [ ] Implementar `POST /accounts`.
-- [ ] Implementar `GET /accounts/{id}`.
-- [ ] Implementar `PUT /accounts/{id}`.
-- [ ] Implementar arquivamento por `DELETE /accounts/{id}`.
+- [x] Criar entidade `Account`.
+- [x] Criar enum `AccountType`.
+- [x] Criar DTOs.
+- [x] Criar repository.
+- [x] Criar service.
+- [x] Criar controller.
+- [x] Implementar `GET /accounts`.
+- [x] Implementar `POST /accounts`.
+- [x] Implementar `GET /accounts/{id}`.
+- [x] Implementar `PUT /accounts/{id}`.
+- [x] Implementar arquivamento por `DELETE /accounts/{id}`.
 - [ ] Implementar calculo de saldo com `initialBalance`.
 - [ ] Implementar `GET /accounts/{id}/balance`.
-- [ ] Criar testes de service.
+- [x] Criar testes de service.
 
 ## Fase 5 - Categories
 
-- [ ] Criar entidade `Category`.
-- [ ] Criar enum `CategoryKind`.
-- [ ] Criar DTOs.
-- [ ] Criar repository.
-- [ ] Criar service.
-- [ ] Criar controller.
-- [ ] Implementar `GET /categories`.
-- [ ] Implementar `POST /categories`.
-- [ ] Implementar `GET /categories/{id}`.
-- [ ] Implementar `PUT /categories/{id}`.
-- [ ] Implementar arquivamento por `DELETE /categories/{id}`.
-- [ ] Impedir nome duplicado por usuario.
-- [ ] Criar testes de service.
+- [x] Criar entidade `Category`.
+- [x] Criar enum `CategoryKind`.
+- [x] Criar DTOs.
+- [x] Criar repository.
+- [x] Criar service.
+- [x] Criar controller.
+- [x] Implementar `GET /categories`.
+- [x] Implementar `POST /categories`.
+- [x] Implementar `GET /categories/{id}`.
+- [x] Implementar `PUT /categories/{id}`.
+- [x] Implementar arquivamento por `DELETE /categories/{id}`.
+- [x] Impedir nome duplicado globalmente no estado atual.
+- [x] Criar testes de service.
 
 ## Fase 6 - Transactions
 
-- [ ] Criar entidade `Transaction`.
+- [x] Criar entidade `Transaction`.
 - [ ] Criar enums:
-  - `TransactionType`
+- [x] `TransactionType`
   - `TransactionSource`
   - `CategoryOrigin`
-- [ ] Criar DTOs de criacao, edicao, listagem e filtros.
-- [ ] Criar repository com filtros por periodo, tipo, conta, categoria e texto.
-- [ ] Criar service.
-- [ ] Criar controller.
-- [ ] Implementar receita.
-- [ ] Implementar despesa.
-- [ ] Validar `amount > 0`.
+- [x] Criar DTOs de criacao, edicao, listagem e pagina.
+- [x] Criar repository com filtros por periodo, tipo, conta e categoria.
+- [x] Criar service.
+- [x] Criar controller.
+- [x] Implementar receita.
+- [x] Implementar despesa.
+- [x] Validar `amount > 0`.
 - [ ] Validar `billingMonth` obrigatorio para despesas em cartao.
-- [ ] Implementar edicao.
-- [ ] Implementar soft delete.
-- [ ] Implementar listagem por periodo.
+- [x] Implementar edicao.
+- [x] Implementar soft delete com `active=false`.
+- [x] Implementar listagem por periodo.
+- [x] Implementar paginacao.
+- [x] Validar compatibilidade categoria x transacao.
 - [ ] Implementar busca simples por `description`, `merchantName`, `rawDescription`.
-- [ ] Criar testes de regras principais.
+- [x] Criar testes de regras principais.
 
 ## Fase 7 - Transferencias
 
@@ -188,7 +190,10 @@
 
 ## Fase 12 - Dashboard
 
-- [ ] Criar DTO de resumo mensal.
+- [x] Criar DTO de resumo mensal em `report`.
+- [x] Implementar `GET /reports/monthly-summary?year=&month=`.
+- [x] Testar service de resumo mensal.
+- [x] Testar controller de resumo mensal.
 - [ ] Implementar `GET /dashboard/monthly?month=YYYY-MM`.
 - [ ] Implementar `GET /dashboard/categories?month=YYYY-MM`.
 - [ ] Implementar `GET /dashboard/cash-flow?from=YYYY-MM&to=YYYY-MM`.
@@ -202,9 +207,9 @@
 
 ## Fase 13 - Contrato Frontend
 
-- [ ] Revisar Swagger.
-- [ ] Criar exemplos de request/response.
-- [ ] Criar arquivo `API_CONTRACT.md`, se Swagger nao for suficiente.
+- [x] Revisar Swagger/API local durante implementacao.
+- [x] Criar exemplos de request/response.
+- [x] Criar arquivo `API_CONTRACT.md`.
 - [ ] Validar fluxo:
   - login
   - listar contas
@@ -214,7 +219,7 @@
 
 ## Fase 14 - Frontend Next.js
 
-- [ ] Criar app Next.js.
+- [x] Criar app Next.js mockado.
 - [ ] Configurar PWA base.
 - [ ] Criar tela `/login`.
 - [ ] Criar client HTTP autenticado.
@@ -228,6 +233,8 @@
 - [ ] Criar `/budgets`.
 - [ ] Criar `/goals`.
 - [ ] Testar fluxo diario no celular.
+
+Nota: a proxima integracao frontend sera feita no opencode com Kimi 2.6. Usar `API_CONTRACT.md` e `frontend/README.md` como handoff.
 
 ## Fase 15 - Pos-MVP
 
@@ -245,4 +252,3 @@
 - [ ] Notificacoes.
 - [ ] Lancamentos recorrentes.
 - [ ] Tags.
-

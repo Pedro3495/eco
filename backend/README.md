@@ -1,13 +1,13 @@
 # Eco Backend
 
-Backend planejado em Java com Spring Boot.
+Backend Java/Spring Boot do Eco.
 
-Este diretorio fica reservado para a implementacao manual do backend. A ideia e usar o projeto como treino real para vaga Jr backend Java, entao as regras de negocio, entidades, repositories, services e controllers devem ser implementados manualmente.
+Este projeto tambem funciona como trilha pratica para vaga Jr backend Java. As partes centrais do backend sao feitas manualmente, com IA apoiando revisao, testes, organizacao e explicacoes.
 
 ## Stack
 
-- Java
-- Spring Boot
+- Java 21
+- Spring Boot 3.5.14
 - Spring Web
 - Spring Security
 - Spring Data JPA
@@ -15,26 +15,13 @@ Este diretorio fica reservado para a implementacao manual do backend. A ideia e 
 - Flyway
 - Bean Validation
 - Springdoc OpenAPI
+- JUnit, Mockito e AssertJ
 
-## Estrutura Esperada
-
-Quando o projeto Spring Boot for criado, a estrutura principal deve ficar assim:
+## Estrutura Atual
 
 ```text
 src/main/java/com/eco
-  EcoApplication.java
-  auth/
-    controller/
-    service/
-    repository/
-    dto/
-    model/
-  user/
-    controller/
-    service/
-    repository/
-    dto/
-    model/
+  EcoBackendApplication.java
   account/
     controller/
     service/
@@ -53,26 +40,12 @@ src/main/java/com/eco
     repository/
     dto/
     model/
-  budget/
-    controller/
-    service/
-    repository/
-    dto/
-    model/
-  goal/
-    controller/
-    service/
-    repository/
-    dto/
-    model/
-  dashboard/
+  report/
     controller/
     service/
     dto/
   common/
     exception/
-    response/
-    validation/
   config/
 ```
 
@@ -122,8 +95,8 @@ Valores padrao do `docker-compose.yml`:
 host: localhost
 port: 5432
 database: eco
-user: eco_user
-password: eco_password
+user: postgres
+password: postgres
 ```
 
 Compilar sem rodar testes:
@@ -138,15 +111,79 @@ Rodar testes:
 .\mvnw.cmd test
 ```
 
-Para `test` passar com a configuracao atual, o PostgreSQL precisa estar rodando via Docker.
+Para `test` passar com a configuracao atual, o PostgreSQL precisa estar acessivel em `localhost:5432/eco`.
 
-## Ordem De Implementacao
+Se `JAVA_HOME` nao estiver configurado globalmente:
 
-Siga o backlog principal:
+```cmd
+set JAVA_HOME=C:\Program Files\Java\jdk-21.0.11&& set PATH=C:\Program Files\Java\jdk-21.0.11\bin;%PATH%&& .\mvnw.cmd test
+```
+
+## Endpoints Implementados
+
+Base local:
 
 ```text
-../docs/BACKLOG.md
+http://localhost:8080/api
 ```
+
+Implementado:
+
+- `GET /categories`
+- `GET /categories/{id}`
+- `POST /categories`
+- `PUT /categories/{id}`
+- `DELETE /categories/{id}`
+- `GET /accounts`
+- `GET /accounts/{id}`
+- `POST /accounts`
+- `PUT /accounts/{id}`
+- `DELETE /accounts/{id}`
+- `GET /transactions` com filtros e paginacao
+- `GET /transactions/{id}`
+- `POST /transactions`
+- `PUT /transactions/{id}`
+- `DELETE /transactions/{id}`
+- `GET /reports/monthly-summary?year=2026&month=5`
+
+## Testes
+
+Testes atuais:
+
+- `CategoryServiceTest`
+- `AccountServiceTest`
+- `TransactionServiceTest`
+- `ReportServiceTest`
+- `ReportControllerTest`
+- `EcoBackendApplicationTests`
+
+Ultimo estado conhecido:
+
+```text
+Tests run: 23
+Failures: 0
+Errors: 0
+BUILD SUCCESS
+```
+
+## CORS
+
+Configurado em `SecurityConfig` para permitir o frontend local:
+
+```text
+http://localhost:3000
+```
+
+Metodos liberados:
+
+```text
+GET, POST, PUT, DELETE, OPTIONS
+```
+
+## Proximas Etapas Backend
+
+- integrar frontend com Kimi/opencode usando `docs/FRONTEND_HANDOFF_KIMI.md`;
+- depois implementar auth/JWT, budgets, goals e features avancadas.
 
 Contrato de API:
 

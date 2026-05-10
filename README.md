@@ -22,8 +22,6 @@ No MVP, o foco e registrar e visualizar dados manualmente:
 
 Funcionalidades mais complexas, como IA ativa, importacao de arquivos, investimentos detalhados e Open Finance, ficam planejadas para fases futuras.
 
-## Stack Planejada
-
 ## Estrutura Do Repositorio
 
 ```text
@@ -42,21 +40,22 @@ Eco/
     README.md
 ```
 
-O backend fica reservado para implementacao manual em Java/Spring Boot. O frontend ja possui uma versao mockada em Next.js para validar a experiencia visual antes da API estar pronta.
+O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui uma versao mockada em Next.js e sera integrado ao backend real em uma proxima etapa.
 
-## Stack Planejada
+## Stack
 
 ### Backend
 
-- Java
-- Spring Boot
+- Java 21
+- Spring Boot 3.5.14
 - Spring Web
-- Spring Security
-- JWT com access token e refresh token
+- Spring Security instalado, temporariamente liberado com `permitAll`
 - Spring Data JPA / Hibernate
 - Bean Validation
 - Springdoc OpenAPI
 - Flyway
+- JUnit, Mockito e AssertJ
+- GitHub Actions CI
 
 ### Banco De Dados
 
@@ -181,40 +180,43 @@ Campos e relacionamentos detalhados estao documentados em [MVP_SCOPE.md](./docs/
 
 ## API
 
-Principais grupos de endpoints:
+Grupos de endpoints atuais/planejados:
 
-- `/api/auth`
 - `/api/accounts`
 - `/api/categories`
 - `/api/transactions`
+- `/api/reports`
+- `/api/auth` futuro
 - `/api/budgets`
 - `/api/goals`
 - `/api/dashboard`
 
 O contrato inicial da API esta em [API_CONTRACT.md](./docs/API_CONTRACT.md).
 
-## Backlog
+## Status Atual
+
+Backend implementado ate agora:
+
+- migrations Flyway para `categories`, `accounts` e `transactions`;
+- CRUD de categorias;
+- CRUD de contas;
+- CRUD de transacoes;
+- filtros em `GET /api/transactions`;
+- paginacao em `GET /api/transactions`;
+- regra de compatibilidade entre tipo da categoria e tipo da transacao;
+- resumo mensal em `GET /api/reports/monthly-summary`;
+- tratamento global de erros;
+- testes unitarios de services;
+- primeiro teste de controller com `@WebMvcTest`;
+- CI configurado para rodar testes.
+
+Frontend:
+
+- Next.js com tela mockada;
+- dados ainda vêm de `frontend/src/mocks/finance-data.ts`;
+- a integracao com a API sera feita em outra sessao/modelo, usando este contrato como base.
 
 A ordem sugerida de implementacao esta em [BACKLOG.md](./docs/BACKLOG.md).
-
-Resumo das fases:
-
-1. Preparacao do projeto.
-2. Banco de dados e migrations.
-3. Infra comum e tratamento de erros.
-4. Autenticacao.
-5. Contas.
-6. Categorias.
-7. Transacoes.
-8. Transferencias.
-9. Parcelamento.
-10. Cartao.
-11. Orcamentos.
-12. Metas.
-13. Dashboard.
-14. Contrato frontend.
-15. Frontend PWA.
-16. Pos-MVP.
 
 ## Regras Financeiras Importantes
 
@@ -266,12 +268,11 @@ Ela nao deve:
 - Lancamentos recorrentes.
 - Tags.
 
-## Status
-
-Projeto em fase de planejamento tecnico e preparacao do MVP.
+## Documentos
 
 Documentos atuais:
 
 - [MVP_SCOPE.md](./docs/MVP_SCOPE.md)
 - [BACKLOG.md](./docs/BACKLOG.md)
 - [API_CONTRACT.md](./docs/API_CONTRACT.md)
+- [JR_BACKEND_NOTES.md](./docs/JR_BACKEND_NOTES.md)
