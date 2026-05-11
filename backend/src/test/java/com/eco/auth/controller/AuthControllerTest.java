@@ -4,18 +4,24 @@ import com.eco.auth.dto.AuthResponse;
 import com.eco.auth.dto.AuthUserResponse;
 import com.eco.auth.service.JwtService;
 import com.eco.auth.service.AuthService;
+import com.eco.user.model.User;
 import com.eco.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,5 +74,30 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.user.id").value(userId.toString()))
                 .andExpect(jsonPath("$.user.name").value("Usuario Dev"))
                 .andExpect(jsonPath("$.user.email").value("dev@eco.com"));
+    }
+
+    @Test
+    void meShouldReturnAuthenticatedUser() throws Exception {
+        User user = new User("Usuario Dev", "dev@eco.com", "hash");
+        AuthUserResponse response = AuthUserResponse.fromEntity(user);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                List.of()
+        );
+
+        when(authService.me(any(User.class))).thenReturn(response);
+
+        try {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            mockMvc.perform(get("/auth/me"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(user.getId().toString()))
+                    .andExpect(jsonPath("$.name").value("Usuario Dev"))
+                    .andExpect(jsonPath("$.email").value("dev@eco.com"));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

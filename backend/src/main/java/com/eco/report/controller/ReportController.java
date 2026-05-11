@@ -2,6 +2,8 @@ package com.eco.report.controller;
 
 import com.eco.report.dto.MonthlySummaryResponse;
 import com.eco.report.service.ReportService;
+import com.eco.user.model.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,8 +22,9 @@ public class ReportController {
     @GetMapping("/monthly-summary")
     public MonthlySummaryResponse getMonthlySummary(
             @RequestParam int year,
-            @RequestParam int month
+            @RequestParam int month,
+            @AuthenticationPrincipal User user
     ) {
-        return reportService.getMonthlySummary(year, month);
+        return reportService.getMonthlySummary(year, month, user);
     }
 }

@@ -1,17 +1,23 @@
 package com.eco.transaction.controller;
 
+import com.eco.transaction.dto.CardSummaryResponse;
+import com.eco.transaction.dto.CreateInstallmentTransactionRequest;
 import com.eco.transaction.dto.CreateTransactionRequest;
+import com.eco.transaction.dto.CreateTransferTransactionRequest;
+import com.eco.transaction.dto.InstallmentTransactionResponse;
 import com.eco.transaction.dto.TransactionPageResponse;
 import com.eco.transaction.dto.TransactionResponse;
 import com.eco.transaction.dto.UpdateTransactionRequest;
 import com.eco.transaction.model.TransactionType;
 import com.eco.transaction.service.TransactionService;
+import com.eco.user.model.User;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,33 +50,61 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Boolean active,
-            @PageableDefault(size = 10, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 10, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal User user
     ) {
-        return transactionService.findAll(accountId, categoryId, type, startDate, endDate, active, pageable);
+        return transactionService.findAll(accountId, categoryId, type, startDate, endDate, active, pageable, user);
     }
 
     @GetMapping("/{id}")
-    public TransactionResponse findById(@PathVariable UUID id) {
-        return transactionService.findById(id);
+    public TransactionResponse findById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        return transactionService.findById(id, user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TransactionResponse create(@RequestBody @Valid CreateTransactionRequest request) {
-        return transactionService.create(request);
+    public TransactionResponse create(@RequestBody @Valid CreateTransactionRequest request, @AuthenticationPrincipal User user) {
+        return transactionService.create(request, user);
+    }
+
+    @PostMapping("/transfers")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TransactionResponse createTransfer(
+            @RequestBody @Valid CreateTransferTransactionRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return transactionService.createTransfer(request, user);
+    }
+
+    @PostMapping("/installments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public InstallmentTransactionResponse createInstallments(
+            @RequestBody @Valid CreateInstallmentTransactionRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return transactionService.createInstallments(request, user);
+    }
+
+    @GetMapping("/card-summary")
+    public CardSummaryResponse getCardSummary(
+            @RequestParam String billingMonth,
+            @AuthenticationPrincipal User user
+    ) {
+        return transactionService.getCardSummary(billingMonth, user);
     }
 
     @PutMapping("/{id}")
     public TransactionResponse update(
             @PathVariable UUID id,
-            @RequestBody @Valid UpdateTransactionRequest request
+            @RequestBody @Valid UpdateTransactionRequest request,
+            @AuthenticationPrincipal User user
     ) {
-        return transactionService.update(id, request);
+        return transactionService.update(id, request, user);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivate(@PathVariable UUID id) {
-        transactionService.deactivate(id);
+    public void deactivate(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        transactionService.deactivate(id, user);
     }
 }

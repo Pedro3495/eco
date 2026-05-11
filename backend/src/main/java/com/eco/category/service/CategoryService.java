@@ -5,6 +5,7 @@ import com.eco.category.dto.CreateCategoryRequest;
 import com.eco.category.dto.UpdateCategoryRequest;
 import com.eco.category.model.Category;
 import com.eco.category.repository.CategoryRepository;
+import com.eco.user.model.User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -27,26 +28,26 @@ public class CategoryService {
     // para cada categoria do banco, monta um DTO de resposta
     // transforma o resultado final de volta em uma lista
     @Transactional(readOnly = true)
-    public List<CategoryResponse> findAll() {
-        return  categoryRepository.findAll()
+    public List<CategoryResponse> findAll(User user) {
+        return  categoryRepository.findAllByUserId(user.getId())
                 .stream()
                 .map(CategoryResponse::fromEntity)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public CategoryResponse findById(UUID id) {
-        Category category = categoryRepository.findById(id)
+    public CategoryResponse findById(UUID id, User user) {
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Categoria nao encontrada"));
 
         return CategoryResponse.fromEntity(category);
     }
     @Transactional
-    public CategoryResponse create(CreateCategoryRequest request){
-        if (categoryRepository.existsByNameIgnoreCase(request.getName())) {
+    public CategoryResponse create(CreateCategoryRequest request, User user){
+        if (categoryRepository.existsByNameIgnoreCaseAndUserId(request.getName(), user.getId())) {
             throw new BusinessException("Categoria ja existe");
         }
-        Category category = new Category(request.getName(), request.getKind(), request.getColor(), request.getIcon());
+        Category category = new Category(request.getName(), request.getKind(), request.getColor(), request.getIcon(), user);
 
         Category savedCategory = categoryRepository.save(category);
 
@@ -54,11 +55,11 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResponse update(UUID id, UpdateCategoryRequest request) {
-        Category category = categoryRepository.findById(id)
+    public CategoryResponse update(UUID id, UpdateCategoryRequest request, User user) {
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Categoria nao encontrada"));
 
-        categoryRepository.findByNameIgnoreCase(request.getName())
+        categoryRepository.findByNameIgnoreCaseAndUserId(request.getName(), user.getId())
                 .filter(existingCategory -> !existingCategory.getId().equals(id))
                 .ifPresent(existingCategory -> {
                     throw new BusinessException("Categoria ja existe");
@@ -76,8 +77,8 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deactivate(UUID id) {
-        Category category = categoryRepository.findById(id)
+    public void deactivate(UUID id, User user) {
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Categoria nao encontrada"));
 
         category.setActive(false);

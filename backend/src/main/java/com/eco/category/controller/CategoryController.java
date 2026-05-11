@@ -4,8 +4,10 @@ import com.eco.category.dto.CategoryResponse;
 import com.eco.category.dto.CreateCategoryRequest;
 import com.eco.category.dto.UpdateCategoryRequest;
 import com.eco.category.service.CategoryService;
+import com.eco.user.model.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,32 +32,33 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<CategoryResponse> findAll() {
-        return categoryService.findAll();
+    public List<CategoryResponse> findAll(@AuthenticationPrincipal User user) {
+        return categoryService.findAll(user);
     }
 
     @GetMapping("/{id}")
-    public CategoryResponse findById(@PathVariable UUID id) {
-        return categoryService.findById(id);
+    public CategoryResponse findById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        return categoryService.findById(id, user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request) {
-        return categoryService.create(request);
+    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request, @AuthenticationPrincipal User user) {
+        return categoryService.create(request, user);
     }
 
     @PutMapping("/{id}")
     public CategoryResponse update(
             @PathVariable UUID id,
-            @RequestBody @Valid UpdateCategoryRequest request
+            @RequestBody @Valid UpdateCategoryRequest request,
+            @AuthenticationPrincipal User user
     ) {
-        return categoryService.update(id, request);
+        return categoryService.update(id, request, user);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivate(@PathVariable UUID id) {
-        categoryService.deactivate(id);
+    public void deactivate(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        categoryService.deactivate(id, user);
     }
 }

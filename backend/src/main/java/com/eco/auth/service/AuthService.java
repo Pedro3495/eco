@@ -70,12 +70,7 @@ public class AuthService {
                 .ifPresent(RefreshToken::revoke);
     }
 
-    @Transactional(readOnly = true)
-    public AuthUserResponse me(String authorizationHeader) {
-        UUID userId = jwtService.validateAndExtractUserId(extractBearerToken(authorizationHeader));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UnauthorizedException("Usuario nao encontrado"));
-
+    public AuthUserResponse me(User user) {
         return AuthUserResponse.fromEntity(user);
     }
 
@@ -108,14 +103,6 @@ public class AuthService {
         }
 
         return refreshToken;
-    }
-
-    private String extractBearerToken(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Token nao informado");
-        }
-
-        return authorizationHeader.substring("Bearer ".length());
     }
 
     private String hash(String value) {

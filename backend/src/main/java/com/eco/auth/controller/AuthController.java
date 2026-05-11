@@ -6,12 +6,13 @@ import com.eco.auth.dto.LoginRequest;
 import com.eco.auth.dto.LogoutRequest;
 import com.eco.auth.dto.RefreshTokenRequest;
 import com.eco.auth.service.AuthService;
+import com.eco.user.model.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +44,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public AuthUserResponse me(@RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
-        return authService.me(authorizationHeader);
+    public AuthUserResponse me(@AuthenticationPrincipal User user) {
+        return authService.me(user);
     }
 }

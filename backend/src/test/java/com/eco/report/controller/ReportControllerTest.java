@@ -42,7 +42,7 @@ class ReportControllerTest {
                 new BigDecimal("2700.00")
         );
 
-        when(reportService.getMonthlySummary(2026, 5)).thenReturn(response);
+        when(reportService.getMonthlySummary(2026, 5, null)).thenReturn(response);
 
         mockMvc.perform(get("/reports/monthly-summary")
                         .param("year", "2026")

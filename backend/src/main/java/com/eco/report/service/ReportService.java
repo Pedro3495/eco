@@ -3,6 +3,7 @@ package com.eco.report.service;
 import com.eco.report.dto.MonthlySummaryResponse;
 import com.eco.transaction.model.TransactionType;
 import com.eco.transaction.repository.TransactionRepository;
+import com.eco.user.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,16 +20,18 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public MonthlySummaryResponse getMonthlySummary(int year, int month) {
+    public MonthlySummaryResponse getMonthlySummary(int year, int month, User user) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         BigDecimal income = transactionRepository.sumAmountByTypeAndPeriod(
+                user.getId(),
                 TransactionType.INCOME,
                 startDate,
                 endDate
         );
         BigDecimal expense = transactionRepository.sumAmountByTypeAndPeriod(
+                user.getId(),
                 TransactionType.EXPENSE,
                 startDate,
                 endDate

@@ -3,12 +3,15 @@ package com.eco.account.repository;
 import com.eco.account.model.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
 
-    Optional<Account> findByNameIgnoreCase(String name);
-    boolean existsByNameIgnoreCase(String name);
+    List<Account> findAllByUserId(UUID userId);
+    Optional<Account> findByIdAndUserId(UUID id, UUID userId);
+    Optional<Account> findByNameIgnoreCaseAndUserId(String name, UUID userId);
+    boolean existsByNameIgnoreCaseAndUserId(String name, UUID userId);
 
 }

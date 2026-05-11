@@ -1,18 +1,23 @@
 package com.eco.category.model;
 
 
+import com.eco.user.model.User;
 import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name="categories")
+@Table(name = "categories")
 public class Category {
     @Id
     private UUID id;
-    @Column(nullable=false, length = 80,unique = true)
+    @Column(nullable = false, length = 80)
     private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -35,12 +40,13 @@ public class Category {
 
     protected Category() {}
 
-    public Category(String name, CategoryKind kind, String color, String icon) {
+    public Category(String name, CategoryKind kind, String color, String icon, User user) {
         this.id = UUID.randomUUID();
         this.name = name;
         this.kind = kind;
         this.color = color;
         this.icon = icon;
+        this.user = user;
         this.active = true;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
@@ -60,6 +66,14 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public CategoryKind getKind() {

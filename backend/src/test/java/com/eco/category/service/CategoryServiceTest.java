@@ -7,6 +7,7 @@ import com.eco.category.model.CategoryKind;
 import com.eco.category.repository.CategoryRepository;
 import com.eco.common.exception.BusinessException;
 import com.eco.common.exception.NotFoundException;
+import com.eco.user.model.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,13 +35,15 @@ class CategoryServiceTest {
     @InjectMocks
     private CategoryService categoryService;
 
+    private final User user = new User("Usuario Dev", "dev@eco.com", "hash");
+
     @Test
     void findAllShouldReturnCategories() {
-        Category category = new Category("Alimentacao", CategoryKind.EXPENSE, "#E86F51", "utensils");
+        Category category = new Category("Alimentacao", CategoryKind.EXPENSE, "#E86F51", "utensils", user);
 
-        when(categoryRepository.findAll()).thenReturn(List.of(category));
+        when(categoryRepository.findAllByUserId(user.getId())).thenReturn(List.of(category));
 
-        List<CategoryResponse> response = categoryService.findAll();
+        List<CategoryResponse> response = categoryService.findAll(user);
 
         assertThat(response).hasSize(1);
         assertThat(response.getFirst().getName()).isEqualTo("Alimentacao");
@@ -50,12 +53,12 @@ class CategoryServiceTest {
     @Test
     void findByIdShouldReturnCategoryWhenExists() {
         UUID id = UUID.randomUUID();
-        Category category = new Category("Alimentacao", CategoryKind.EXPENSE, "#E86F51", "utensils");
+        Category category = new Category("Alimentacao", CategoryKind.EXPENSE, "#E86F51", "utensils", user);
         category.setId(id);
 
-        when(categoryRepository.findById(id)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndUserId(id, user.getId())).thenReturn(Optional.of(category));
 
-        CategoryResponse response = categoryService.findById(id);
+        CategoryResponse response = categoryService.findById(id, user);
 
         assertThat(response.getId()).isEqualTo(id);
         assertThat(response.getName()).isEqualTo("Alimentacao");
@@ -65,9 +68,9 @@ class CategoryServiceTest {
     void findByIdShouldThrowNotFoundWhenCategoryDoesNotExist() {
         UUID id = UUID.randomUUID();
 
-        when(categoryRepository.findById(id)).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndUserId(id, user.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> categoryService.findById(id))
+        assertThatThrownBy(() -> categoryService.findById(id, user))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Categoria nao encontrada");
     }
@@ -76,10 +79,10 @@ class CategoryServiceTest {
     void createShouldSaveCategoryWhenNameDoesNotExist() {
         CreateCategoryRequest request = createCategoryRequest();
 
-        when(categoryRepository.existsByNameIgnoreCase("Alimentacao")).thenReturn(false);
+        when(categoryRepository.existsByNameIgnoreCaseAndUserId("Alimentacao", user.getId())).thenReturn(false);
         when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CategoryResponse response = categoryService.create(request);
+        CategoryResponse response = categoryService.create(request, user);
 
         assertThat(response.getName()).isEqualTo("Alimentacao");
         assertThat(response.getKind()).isEqualTo(CategoryKind.EXPENSE);
@@ -90,9 +93,9 @@ class CategoryServiceTest {
     void createShouldThrowBusinessExceptionWhenNameAlreadyExists() {
         CreateCategoryRequest request = createCategoryRequest();
 
-        when(categoryRepository.existsByNameIgnoreCase("Alimentacao")).thenReturn(true);
+        when(categoryRepository.existsByNameIgnoreCaseAndUserId("Alimentacao", user.getId())).thenReturn(true);
 
-        assertThatThrownBy(() -> categoryService.create(request))
+        assertThatThrownBy(() -> categoryService.create(request, user))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Categoria ja existe");
 

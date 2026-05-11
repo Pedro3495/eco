@@ -4,6 +4,7 @@ import com.eco.transaction.model.TransactionType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -25,6 +26,9 @@ public class CreateTransactionRequest {
 
     @NotNull
     private LocalDate occurredAt;
+
+    @Pattern(regexp = "\\d{4}-\\d{2}")
+    private String billingMonth;
 
     @NotNull
     private UUID accountId;
@@ -49,6 +53,10 @@ public class CreateTransactionRequest {
 
     public LocalDate getOccurredAt() {
         return occurredAt;
+    }
+
+    public String getBillingMonth() {
+        return billingMonth;
     }
 
     public UUID getAccountId() {
