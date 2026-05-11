@@ -17,10 +17,12 @@ export const EcoAppShell: React.FC<Props> = ({ children, monthLabel, dark }) => 
       fontFamily: "'Inter', system-ui, sans-serif",
       overflow: "hidden"
     }}>
-      <EcoSidebar />
-      <div style={{ flex: 1, padding: "32px 40px", overflow: "hidden" }}>
-        <EcoTopbar monthLabel={monthLabel} />
-        {children}
+      <EcoSidebar dark={dark} />
+      <div style={{ flex: 1, padding: "28px 36px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <EcoTopbar monthLabel={monthLabel} dark={dark} />
+        <div style={{ flex: 1, overflow: "hidden" }}>
+          {children}
+        </div>
       </div>
     </div>
   );
