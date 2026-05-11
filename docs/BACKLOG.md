@@ -22,16 +22,16 @@
 
 ## Fase 1 - Base De Banco
 
-- [ ] Criar migration `users`.
-- [ ] Criar migration `refresh_tokens`.
+- [x] Criar migration `users`.
+- [x] Criar migration `refresh_tokens`.
 - [x] Criar migration `accounts`.
 - [x] Criar migration `categories`.
 - [x] Criar migration `transactions`.
-- [ ] Criar migration `monthly_budgets`.
-- [ ] Criar migration `category_budgets`.
-- [ ] Criar migration `goals`.
+- [x] Criar migration `monthly_budgets`.
+- [x] Criar migration `category_budgets`.
+- [x] Criar migration `goals`.
 - [ ] Criar indices principais.
-- [ ] Criar seed local de usuario inicial.
+- [x] Criar seed local de usuario inicial.
 - [ ] Criar seed de categorias padrao.
 
 ## Fase 2 - Common E Infra
@@ -39,30 +39,46 @@
 - [x] Criar estrutura `common`.
 - [x] Criar resposta padrao de erro.
 - [x] Criar `@RestControllerAdvice`.
-- [ ] Criar excecoes:
+- [x] Criar excecoes:
   - [x] `NotFoundException`
   - [x] `BusinessException`
-  - `UnauthorizedException`
+  - [x] `UnauthorizedException`
 - [ ] Criar base de auditoria para `createdAt` e `updatedAt`.
 - [ ] Definir estrategia de soft delete para transacoes.
 - [x] Configurar Swagger/OpenAPI local.
 
 ## Fase 3 - Autenticacao
 
-- [ ] Criar entidade `User`.
-- [ ] Criar entidade `RefreshToken`.
-- [ ] Criar repositories.
-- [ ] Criar DTOs de login, refresh e usuario logado.
-- [ ] Implementar password hashing com BCrypt.
-- [ ] Implementar geracao de access token.
-- [ ] Implementar geracao e armazenamento de refresh token com hash.
-- [ ] Implementar `POST /auth/login`.
-- [ ] Implementar `POST /auth/refresh`.
-- [ ] Implementar `POST /auth/logout`.
-- [ ] Implementar `GET /auth/me`.
-- [ ] Configurar filtro JWT no Spring Security.
-- [ ] Proteger endpoints privados.
-- [ ] Testar login e refresh.
+- [x] Criar entidade `User`.
+- [x] Criar entidade `RefreshToken`.
+- [x] Criar repositories.
+- [x] Criar DTOs de login, refresh e usuario logado.
+- [x] Implementar password hashing com BCrypt.
+- [x] Implementar geracao de access token.
+- [x] Implementar geracao e armazenamento de refresh token com hash.
+- [x] Implementar `POST /auth/login`.
+- [x] Implementar `POST /auth/refresh`.
+- [x] Implementar `POST /auth/logout`.
+- [x] Implementar `GET /auth/me`.
+- [x] Configurar filtro JWT no Spring Security.
+- [x] Proteger endpoints privados.
+- [x] Testar login e refresh.
+- [x] Testar filtro JWT.
+- [x] Testar endpoint protegido sem token retornando `401`.
+
+## Fase 3.1 - Escopo Por Usuario
+
+- [x] Adicionar `user_id` em `accounts`.
+- [x] Adicionar `user_id` em `categories`.
+- [x] Adicionar `user_id` em `transactions`.
+- [x] Criar migration para vincular dados existentes ao usuario dev.
+- [x] Ajustar repositories para consultar por usuario autenticado.
+- [x] Ajustar services para criar dados vinculados ao usuario autenticado.
+- [x] Impedir acesso a conta/categoria/transacao de outro usuario.
+- [x] Ajustar relatorio mensal para filtrar por usuario.
+- [x] Ajustar testes de services para usuario.
+- [x] Criar teste de isolamento: usuario A nao ve dados do usuario B.
+- [x] Atualizar contrato da API com regra de escopo por usuario.
 
 ## Fase 4 - Accounts
 
@@ -77,8 +93,8 @@
 - [x] Implementar `GET /accounts/{id}`.
 - [x] Implementar `PUT /accounts/{id}`.
 - [x] Implementar arquivamento por `DELETE /accounts/{id}`.
-- [ ] Implementar calculo de saldo com `initialBalance`.
-- [ ] Implementar `GET /accounts/{id}/balance`.
+- [x] Implementar calculo de saldo com `initialBalance`.
+- [x] Implementar `GET /accounts/{id}/balance`.
 - [x] Criar testes de service.
 
 ## Fase 5 - Categories
@@ -94,7 +110,7 @@
 - [x] Implementar `GET /categories/{id}`.
 - [x] Implementar `PUT /categories/{id}`.
 - [x] Implementar arquivamento por `DELETE /categories/{id}`.
-- [x] Impedir nome duplicado globalmente no estado atual.
+- [x] Impedir nome duplicado por usuario.
 - [x] Criar testes de service.
 
 ## Fase 6 - Transactions
@@ -111,7 +127,7 @@
 - [x] Implementar receita.
 - [x] Implementar despesa.
 - [x] Validar `amount > 0`.
-- [ ] Validar `billingMonth` obrigatorio para despesas em cartao.
+- [x] Validar `billingMonth` obrigatorio para despesas em cartao.
 - [x] Implementar edicao.
 - [x] Implementar soft delete com `active=false`.
 - [x] Implementar listagem por periodo.
@@ -122,71 +138,71 @@
 
 ## Fase 7 - Transferencias
 
-- [ ] Implementar `POST /transactions/transfers`.
-- [ ] Validar conta de origem.
-- [ ] Validar conta de destino.
-- [ ] Bloquear origem igual ao destino.
-- [ ] Salvar transferencia como uma transacao unica.
-- [ ] Ajustar calculo de saldo para considerar transferencias.
-- [ ] Testar saldo da origem.
-- [ ] Testar saldo do destino.
+- [x] Implementar `POST /transactions/transfers`.
+- [x] Validar conta de origem.
+- [x] Validar conta de destino.
+- [x] Bloquear origem igual ao destino.
+- [x] Salvar transferencia como uma transacao unica.
+- [x] Ajustar calculo de saldo para considerar transferencias.
+- [x] Testar saldo da origem.
+- [x] Testar saldo do destino.
 
 ## Fase 8 - Parcelamento
 
-- [ ] Criar DTO `CreateInstallmentTransactionRequest`.
-- [ ] Implementar `POST /transactions/installments`.
-- [ ] Gerar `installmentGroupId`.
-- [ ] Criar N transacoes futuras.
-- [ ] Preencher `installmentNumber`.
-- [ ] Preencher `installmentTotal`.
-- [ ] Calcular valor de cada parcela.
-- [ ] Tratar arredondamento da ultima parcela.
-- [ ] Calcular `billingMonth` de cada parcela.
-- [ ] Testar parcelamento em 2x.
-- [ ] Testar parcelamento com centavos quebrados.
+- [x] Criar DTO `CreateInstallmentTransactionRequest`.
+- [x] Implementar `POST /transactions/installments`.
+- [x] Gerar `installmentGroupId`.
+- [x] Criar N transacoes futuras.
+- [x] Preencher `installmentNumber`.
+- [x] Preencher `installmentTotal`.
+- [x] Calcular valor de cada parcela.
+- [x] Tratar arredondamento da ultima parcela.
+- [x] Calcular `billingMonth` de cada parcela.
+- [x] Testar parcelamento em 2x.
+- [x] Testar parcelamento com centavos quebrados.
 
 ## Fase 9 - Cartao
 
-- [ ] Implementar `GET /transactions/card-summary?billingMonth=YYYY-MM`.
-- [ ] Somar despesas por `billingMonth`.
-- [ ] Ignorar transacoes deletadas.
-- [ ] Garantir que dashboard use `billingMonth` para cartao.
-- [ ] Testar compra em data diferente do mes de fatura.
+- [x] Implementar `GET /transactions/card-summary?billingMonth=YYYY-MM`.
+- [x] Somar despesas por `billingMonth`.
+- [x] Ignorar transacoes deletadas.
+- [x] Garantir que dashboard use `billingMonth` para cartao.
+- [x] Testar compra em data diferente do mes de fatura.
 
 ## Fase 10 - Budgets
 
-- [ ] Criar entidade `MonthlyBudget`.
-- [ ] Criar entidade `CategoryBudget`.
-- [ ] Criar DTOs.
-- [ ] Criar repositories.
-- [ ] Criar service.
-- [ ] Criar controller.
-- [ ] Implementar `GET /budgets/{month}`.
-- [ ] Implementar `PUT /budgets/{month}`.
-- [ ] Implementar `PUT /budgets/{month}/categories/{categoryId}`.
-- [ ] Implementar `DELETE /budgets/{month}/categories/{categoryId}`.
-- [ ] Implementar `GET /budgets/{month}/summary`.
-- [ ] Considerar apenas despesas.
-- [ ] Considerar cartao pelo `billingMonth`.
-- [ ] Testar categoria dentro do limite.
-- [ ] Testar categoria acima do limite.
+- [x] Criar entidade `MonthlyBudget`.
+- [x] Criar entidade `CategoryBudget`.
+- [x] Criar DTOs.
+- [x] Criar repositories.
+- [x] Criar service.
+- [x] Criar controller.
+- [x] Implementar `GET /budgets/{month}`.
+- [x] Implementar `PUT /budgets/{month}`.
+- [x] Implementar `PUT /budgets/{month}/categories/{categoryId}`.
+- [x] Implementar `DELETE /budgets/{month}/categories/{categoryId}`.
+- [x] Implementar `GET /budgets/{month}/summary`.
+- [x] Considerar apenas despesas.
+- [x] Considerar cartao pelo `billingMonth`.
+- [x] Testar categoria dentro do limite.
+- [x] Testar categoria acima do limite.
 
 ## Fase 11 - Goals
 
-- [ ] Criar entidade `Goal`.
-- [ ] Criar enum `GoalStatus`.
-- [ ] Criar DTOs.
-- [ ] Criar repository.
-- [ ] Criar service.
-- [ ] Criar controller.
-- [ ] Implementar `GET /goals`.
-- [ ] Implementar `POST /goals`.
-- [ ] Implementar `GET /goals/{id}`.
-- [ ] Implementar `PUT /goals/{id}`.
-- [ ] Implementar arquivamento por `DELETE /goals/{id}`.
-- [ ] Implementar `PATCH /goals/{id}/progress`.
-- [ ] Testar progresso manual.
-- [ ] Testar conclusao.
+- [x] Criar entidade `Goal`.
+- [x] Criar enum `GoalStatus`.
+- [x] Criar DTOs.
+- [x] Criar repository.
+- [x] Criar service.
+- [x] Criar controller.
+- [x] Implementar `GET /goals`.
+- [x] Implementar `POST /goals`.
+- [x] Implementar `GET /goals/{id}`.
+- [x] Implementar `PUT /goals/{id}`.
+- [x] Implementar arquivamento por `DELETE /goals/{id}`.
+- [x] Implementar `PATCH /goals/{id}/progress`.
+- [x] Testar progresso manual.
+- [x] Testar conclusao.
 
 ## Fase 12 - Dashboard
 
@@ -194,23 +210,23 @@
 - [x] Implementar `GET /reports/monthly-summary?year=&month=`.
 - [x] Testar service de resumo mensal.
 - [x] Testar controller de resumo mensal.
-- [ ] Implementar `GET /dashboard/monthly?month=YYYY-MM`.
-- [ ] Implementar `GET /dashboard/categories?month=YYYY-MM`.
-- [ ] Implementar `GET /dashboard/cash-flow?from=YYYY-MM&to=YYYY-MM`.
-- [ ] Calcular receitas por `transactionDate`.
-- [ ] Calcular despesas comuns por `transactionDate`.
-- [ ] Calcular despesas de cartao por `billingMonth`.
-- [ ] Calcular resultado mensal.
-- [ ] Calcular orcamento consumido.
-- [ ] Retornar progresso das metas.
-- [ ] Testar resumo mensal.
+- [x] Implementar `GET /dashboard/monthly?month=YYYY-MM`.
+- [x] Implementar `GET /dashboard/categories?month=YYYY-MM`.
+- [x] Implementar `GET /dashboard/cash-flow?from=YYYY-MM&to=YYYY-MM`.
+- [x] Calcular receitas por `transactionDate`.
+- [x] Calcular despesas comuns por `transactionDate`.
+- [x] Calcular despesas de cartao por `billingMonth`.
+- [x] Calcular resultado mensal.
+- [x] Calcular orcamento consumido.
+- [x] Retornar progresso das metas.
+- [x] Testar resumo mensal.
 
 ## Fase 13 - Contrato Frontend
 
 - [x] Revisar Swagger/API local durante implementacao.
 - [x] Criar exemplos de request/response.
 - [x] Criar arquivo `API_CONTRACT.md`.
-- [ ] Validar fluxo:
+- [x] Validar fluxo:
   - login
   - listar contas
   - listar categorias
@@ -220,21 +236,21 @@
 ## Fase 14 - Frontend Next.js
 
 - [x] Criar app Next.js mockado.
-- [ ] Configurar PWA base.
-- [ ] Criar tela `/login`.
-- [ ] Criar client HTTP autenticado.
-- [ ] Implementar refresh token.
-- [ ] Criar layout mobile-first.
-- [ ] Criar `/dashboard`.
-- [ ] Criar `/transactions`.
-- [ ] Criar `/transactions/new`.
-- [ ] Criar `/accounts`.
-- [ ] Criar `/categories`.
-- [ ] Criar `/budgets`.
-- [ ] Criar `/goals`.
+- [x] Configurar PWA base.
+- [x] Criar tela `/login`.
+- [x] Criar client HTTP autenticado.
+- [x] Implementar refresh token.
+- [x] Criar layout mobile-first.
+- [x] Criar `/dashboard`.
+- [x] Criar `/transactions`.
+- [x] Criar `/transactions/new`.
+- [x] Criar `/accounts`.
+- [x] Criar `/categories`.
+- [x] Criar `/budgets`.
+- [x] Criar `/goals`.
 - [ ] Testar fluxo diario no celular.
 
-Nota: a proxima integracao frontend sera feita no opencode com Kimi 2.6. Usar `API_CONTRACT.md` e `frontend/README.md` como handoff.
+Nota: backend MVP funcional e frontend integrado aos endpoints principais. Ainda falta teste manual em celular real e deploy publico.
 
 ## Fase 15 - Pos-MVP
 

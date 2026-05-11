@@ -13,7 +13,7 @@ O foco é começar simples, funcional e evoluir por fases pequenas e bem testada
 ### Backend
 - Java 21
 - Spring Boot 3.5.14
-- Spring Web, Spring Data JPA, Spring Security (temporariamente `permitAll`)
+- Spring Web, Spring Data JPA, Spring Security com JWT nos endpoints privados
 - Bean Validation, Springdoc OpenAPI
 - PostgreSQL + Flyway
 - JUnit, Mockito, AssertJ
@@ -42,7 +42,9 @@ Eco/
   backend/                <- Spring Boot
     src/main/java/com/eco/
       account/
+      auth/
       category/
+      user/
       transaction/
       report/
       common/exception/
@@ -80,12 +82,15 @@ Eco/
 - **Flyway versiona o schema**: `ddl-auto: validate` no Hibernate
 - **Auditoria**: `created_at`, `updated_at` em UTC (`Instant`)
 - **Erros padronizados**: `@RestControllerAdvice` com `ErrorResponse`
+- **Auth JWT**: `/auth/login`, `/auth/refresh`, `/auth/logout` publicos; endpoints privados exigem `Authorization: Bearer <accessToken>`
+- **Proximo limite arquitetural**: contas, categorias e transacoes ainda precisam ser associadas ao `User` autenticado antes de multiusuario real
 
 ### Frontend
 - **CSS puro com design tokens**: variáveis CSS para cores, espaçamentos, tipografia, suportando dark mode
 - **Mobile-first**: layout funciona em telas pequenas antes de desktop
 - **Fallback mockado**: quando backend está desligado, o app usa mocks e mostra badge "modo demonstração"
 - **Client HTTP simples**: `fetch` com wrapper em `lib/api.ts`
+- **Auth frontend atual**: tela `/login`, tokens no `localStorage`, `Authorization` automatico no client HTTP, logout basico
 - **PWA**: manifest, service worker (futuro), viewport configurado
 - **Animações**: Framer Motion para micro-interações e transições de layout
 - **Gráficos**: Recharts para dataviz no dashboard
@@ -121,9 +126,13 @@ CORS liberado para `http://localhost:3000`.
 - `PUT /transactions/{id}` — editar
 - `DELETE /transactions/{id}` — soft delete
 - `GET /reports/monthly-summary?year=&month=` — resumo mensal
+- `POST /auth/login` — login
+- `POST /auth/refresh` — renovar tokens
+- `POST /auth/logout` — revogar refresh token
+- `GET /auth/me` — usuario autenticado
 
 ### Planejados (não implementados)
-- Auth: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
+- Escopo por usuario: `user_id` em contas, categorias e transacoes
 - Transferências: `POST /transactions/transfers`
 - Parcelamento: `POST /transactions/installments`
 - Cartão: `GET /transactions/card-summary?billingMonth=`
@@ -164,9 +173,11 @@ Antes de considerar uma tarefa completa:
 
 1. Backend precisa estar rodando: `docker compose up -d` + `mvnw.cmd spring-boot:run`
 2. Frontend aponta para `http://localhost:8080/api` (ou `NEXT_PUBLIC_API_BASE_URL`)
-3. `frontend/src/lib/api.ts` contém todas as funções de HTTP
-4. Se backend retornar erro de rede (fetch falha), dashboard cai para mocks
-5. Novos endpoints devem ser adicionados em `lib/api.ts` antes de usados nas páginas
+3. Login local: `dev@eco.com` / `123456`
+4. `frontend/src/lib/api.ts` contém as funções de HTTP e injeta `Authorization`
+5. Se backend retornar erro de rede (fetch falha), dashboard cai para mocks
+6. Se backend retornar `401`, o frontend limpa tokens e volta para `/login`
+7. Novos endpoints devem ser adicionados em `lib/api.ts` antes de usados nas páginas
 
 ## O que a IA Não Deve Fazer Sem Confirmação
 
@@ -179,7 +190,7 @@ Antes de considerar uma tarefa completa:
 
 ## Roadmap Imediato (MVP)
 
-1. **Auth/JWT** — backend: entidades `User`, `RefreshToken`; frontend: tela `/login`
+1. **Escopo por usuário** — adicionar `user_id` e filtrar dados pelo usuário autenticado
 2. **Transferências** — endpoint `POST /transactions/transfers`
 3. **Parcelamento** — endpoint `POST /transactions/installments`
 4. **Budgets e Goals** — CRUD + telas
@@ -203,4 +214,4 @@ Antes de considerar uma tarefa completa:
 
 ---
 
-Última atualização: 2026-05-10
+Última atualização: 2026-05-11

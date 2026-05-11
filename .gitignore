@@ -30,3 +30,7 @@ frontend/pnpm-debug.log*
 
 # Research / local captures
 .firecrawl/
+
+# Test results / local assets
+frontend/test-results/
+my-video/

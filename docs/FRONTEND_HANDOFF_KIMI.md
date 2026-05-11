@@ -7,8 +7,9 @@ Use este arquivo como contexto rápido para integrar o frontend Next.js ao backe
 Backend:
 
 - Base URL local: `http://localhost:8080/api`
-- Spring Security esta temporariamente liberado com `permitAll`.
-- Ainda não há JWT/login real.
+- Spring Security esta ativo: `/auth/login`, `/auth/refresh` e `/auth/logout` sao publicos; endpoints privados exigem Bearer token.
+- Auth/JWT ja existe no backend e login basico ja existe no frontend.
+- Frontend salva tokens em `localStorage` e injeta `Authorization: Bearer <accessToken>` em `frontend/src/lib/api.ts`.
 - PostgreSQL local precisa estar rodando.
 - API retorna JSON.
 
@@ -18,7 +19,7 @@ Frontend:
 - Tela atual usa mocks em `frontend/src/mocks/finance-data.ts`
 - Design system premium com dark mode, animações (Framer Motion) e gráficos (Recharts).
 - Telas: `/`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/goals`
-- Primeiro objetivo: substituir mocks por chamadas HTTP reais, sem redesenhar a UI inteira.
+- Objetivo atual: manter auth funcionando, implementar refresh automatico se necessario e integrar as telas que ainda estao mockadas sem redesenhar a UI inteira.
 
 ## Endpoints Prontos Para Integracao
 
@@ -175,7 +176,7 @@ GET, POST, PUT, DELETE, OPTIONS
 
 ## Cuidados
 
-- Nao implementar login/JWT ainda no frontend.
+- Nao reimplementar login/JWT do zero; evoluir a base atual.
 - Nao redesenhar a UI inteira antes de conectar os dados.
 - Manter mocks como fallback temporario se quiser.
 - O campo de resultado no frontend mockado chama `result`, mas a API retorna `balance`.

@@ -28,7 +28,12 @@ Estrutura principal:
 backend/
   src/main/java/com/eco/
     account/
+    auth/
     category/
+    budget/
+    goal/
+    dashboard/
+    user/
     transaction/
     common/exception/
     config/
@@ -68,6 +73,9 @@ No projeto:
 - `AccountController`
 - `TransactionController`
 - `ReportController`
+- `BudgetController`
+- `GoalController`
+- `DashboardController`
 
 O controller deve:
 
@@ -81,16 +89,16 @@ Exemplos:
 
 ```java
 @GetMapping("/{id}")
-public TransactionResponse findById(@PathVariable UUID id) {
-    return transactionService.findById(id);
+public TransactionResponse findById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+    return transactionService.findById(id, user);
 }
 ```
 
 ```java
 @PostMapping
 @ResponseStatus(HttpStatus.CREATED)
-public TransactionResponse create(@RequestBody @Valid CreateTransactionRequest request) {
-    return transactionService.create(request);
+public TransactionResponse create(@RequestBody @Valid CreateTransactionRequest request, @AuthenticationPrincipal User user) {
+    return transactionService.create(request, user);
 }
 ```
 
@@ -117,6 +125,9 @@ No projeto:
 - `AccountService`
 - `TransactionService`
 - `ReportService`
+- `BudgetService`
+- `GoalService`
+- `DashboardService`
 
 O service faz coisas como:
 
@@ -131,7 +142,7 @@ O service faz coisas como:
 Exemplo:
 
 ```java
-if (accountRepository.existsByNameIgnoreCase(request.getName())) {
+if (accountRepository.existsByNameIgnoreCaseAndUserId(request.getName(), user.getId())) {
     throw new BusinessException("Conta ja existe");
 }
 ```
@@ -173,6 +184,9 @@ No projeto:
 - `CategoryRepository`
 - `AccountRepository`
 - `TransactionRepository`
+- `MonthlyBudgetRepository`
+- `CategoryBudgetRepository`
+- `GoalRepository`
 
 Eles estendem `JpaRepository`.
 
@@ -193,8 +207,8 @@ O `JpaRepository` ja entrega:
 Tambem da para criar metodos por nome:
 
 ```java
-boolean existsByNameIgnoreCase(String name);
-Optional<Account> findByNameIgnoreCase(String name);
+boolean existsByNameIgnoreCaseAndUserId(String name, UUID userId);
+Optional<Account> findByNameIgnoreCaseAndUserId(String name, UUID userId);
 ```
 
 O Spring Data JPA interpreta o nome do metodo e monta a query.
@@ -258,6 +272,10 @@ No projeto existem DTOs de entrada e saida:
 - `CreateTransactionRequest`
 - `UpdateTransactionRequest`
 - `TransactionResponse`
+- `MonthlyBudgetResponse`
+- `CategoryBudgetResponse`
+- `BudgetSummaryResponse`
+- `GoalResponse`
 
 ### Request DTO
 
@@ -470,9 +488,9 @@ Ponto de atencao atual:
 
 `BusinessException` deve virar `400 Bad Request`, porque representa erro de regra de negocio ou entrada invalida.
 
-## Security
+## Security E Auth
 
-Spring Security ja esta instalado.
+Spring Security esta ativo com JWT.
 
 Arquivo:
 
@@ -484,28 +502,50 @@ Configuracao atual:
 
 ```java
 .authorizeHttpRequests(auth -> auth
-    .anyRequest().permitAll()
+    .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll()
+    .anyRequest().authenticated()
 )
 ```
 
 Significa:
 
 ```text
-Por enquanto todos os endpoints estao liberados.
+login, refresh e logout sao publicos.
+O resto exige usuario autenticado.
 ```
 
-Isso e temporario.
+Fluxo mental:
 
-Futuro:
+```text
+Authorization: Bearer <token>
+-> JwtAuthenticationFilter
+-> JwtService valida token
+-> UserRepository busca usuario
+-> Authentication e criada
+-> SecurityContext guarda o usuario da request
+-> controller pode usar @AuthenticationPrincipal
+```
 
-- login;
-- JWT;
-- endpoints protegidos;
-- filtrar dados por usuario autenticado.
+Classes importantes:
+
+- `AuthService`: login, refresh, logout e usuario logado.
+- `JwtService`: gera e valida access token.
+- `JwtAuthenticationFilter`: transforma Bearer token valido em request autenticada.
+- `SecurityConfig`: define rotas publicas/protegidas e registra o filtro.
+- `User`: entidade do usuario autenticado.
+- `RefreshToken`: sessao renovavel com hash no banco.
 
 Para entrevista:
 
-> O projeto ja tem Spring Security configurado, mas nesta fase esta liberado para facilitar desenvolvimento. Autenticacao JWT fica para a proxima etapa.
+> O projeto usa JWT stateless: o access token identifica o usuario, o filtro valida o token a cada request e coloca o usuario no SecurityContext. Endpoints privados exigem Bearer token.
+
+Ponto importante:
+
+```text
+Os dados financeiros agora sao filtrados por user_id.
+Controller recebe @AuthenticationPrincipal User.
+Service usa user.getId() nas consultas.
+```
 
 ## Filtros De Transactions
 
@@ -576,6 +616,7 @@ Vira algo parecido com:
 ```sql
 WHERE type = 'EXPENSE'
 AND active = false
+AND user_id = usuario_autenticado
 ```
 
 Datas:
@@ -667,6 +708,7 @@ select sum(amount)
 from transactions
 where type = 'EXPENSE'
   and active = true
+  and user_id = userId
   and occurred_at between startDate and endDate
 ```
 
@@ -681,6 +723,133 @@ Ponto importante:
 ```text
 Dinheiro usa BigDecimal, nao double.
 ```
+
+## Budgets
+
+Endpoints principais:
+
+```text
+GET /api/budgets/{month}
+PUT /api/budgets/{month}
+PUT /api/budgets/{month}/categories/{categoryId}
+DELETE /api/budgets/{month}/categories/{categoryId}
+GET /api/budgets/{month}/summary
+```
+
+Modelo mental:
+
+```text
+MonthlyBudget = limite geral de um mes.
+CategoryBudget = limite de uma categoria dentro daquele mes.
+BudgetSummary = calculo de quanto ja foi gasto.
+```
+
+Ponto importante:
+
+```text
+Budget nao armazena gasto realizado.
+Budget armazena limites.
+O gasto realizado e calculado lendo transactions.
+```
+
+Regra financeira:
+
+```text
+despesa comum -> usa occurredAt
+despesa de cartao -> usa billingMonth
+receita e transferencia -> ignoradas no budget
+```
+
+Percentual:
+
+```text
+usagePercent = spentAmount / limitAmount * 100
+```
+
+Para entrevista:
+
+> O budget guarda limites mensais e por categoria. O resumo calcula o consumo em tempo real usando as transacoes do usuario autenticado, considerando despesas comuns pela data da transacao e despesas de cartao pelo mes da fatura.
+
+## Goals
+
+Endpoints principais:
+
+```text
+GET /api/goals
+POST /api/goals
+GET /api/goals/{id}
+PUT /api/goals/{id}
+PATCH /api/goals/{id}/progress
+DELETE /api/goals/{id}
+```
+
+Modelo mental:
+
+```text
+Goal = uma meta financeira do usuario.
+targetAmount = valor alvo.
+currentAmount = progresso manual.
+progressPercent = currentAmount / targetAmount * 100.
+```
+
+Status:
+
+```text
+ACTIVE = meta em andamento
+COMPLETED = meta atingida
+ARCHIVED = meta arquivada
+```
+
+Regra importante:
+
+```text
+GET /goals nao retorna metas arquivadas.
+DELETE /goals/{id} nao apaga do banco; muda status para ARCHIVED.
+PATCH /goals/{id}/progress atualiza apenas o progresso manual.
+```
+
+Para entrevista:
+
+> Goals e um CRUD simples com escopo por usuario. A meta guarda alvo e progresso atual. Quando o progresso chega no alvo, o status vira COMPLETED. O delete e arquivamento logico usando status ARCHIVED.
+
+## Dashboard
+
+Endpoints principais:
+
+```text
+GET /api/dashboard/monthly?month=2026-05
+GET /api/dashboard/categories?month=2026-05
+GET /api/dashboard/cash-flow?from=2026-01&to=2026-05
+```
+
+Modelo mental:
+
+```text
+Dashboard nao cria tabela.
+Dashboard junta dados ja existentes.
+Ele le transactions, budget e goals.
+```
+
+Regra financeira:
+
+```text
+receita -> occurredAt
+despesa comum -> occurredAt
+despesa de cartao -> billingMonth
+transferencia -> nao entra como receita/despesa
+```
+
+Endpoints:
+
+```text
+/dashboard/monthly -> resumo do mes
+/dashboard/categories -> despesas agrupadas por categoria
+/dashboard/cash-flow -> linha mensal de receitas, despesas e resultado
+```
+
+Para entrevista:
+
+> Dashboard e uma camada de leitura/agregacao. Ele nao persiste dados novos; calcula respostas para a tela usando queries no repository, respeitando o usuario autenticado e a regra de cartao por billingMonth.
 
 ## Testes
 
@@ -741,7 +910,7 @@ Ele ajuda a detectar:
 Ultimo teste local:
 
 ```text
-Tests run: 23
+Tests run: 34
 Failures: 0
 Errors: 0
 BUILD SUCCESS
@@ -781,6 +950,10 @@ Voce deve conseguir responder:
 16. Qual a diferenca entre teste de service e teste de controller?
 17. O que e `Pageable`?
 18. Por que uma listagem real deve ser paginada?
+19. Como um JWT vira usuario autenticado no Spring Security?
+20. O que e `SecurityContext`?
+21. O que `@AuthenticationPrincipal` faz?
+22. Por que dados financeiros precisam filtrar por `user_id`?
 
 ## Respostas Curtas Para Entrevista
 
@@ -856,12 +1029,23 @@ MockMvc permite testar um endpoint HTTP sem subir servidor real.
 Pageable representa page, size e sort recebidos na API e usados pelo repository para limitar a consulta.
 ```
 
+### SecurityContext
+
+```text
+SecurityContext e o lugar onde o Spring guarda quem e o usuario autenticado da request atual.
+```
+
+### @AuthenticationPrincipal
+
+```text
+@AuthenticationPrincipal injeta no controller o principal que foi colocado no SecurityContext pelo filtro JWT.
+```
+
 ## Pontos De Atencao Para Melhorar Depois
 
-1. Conectar frontend ao backend real usando opencode/Kimi.
-2. Criar telas/formularios reais para categorias, contas e transacoes.
-3. Implementar autenticacao JWT.
-4. Garantir que, no futuro, todas as consultas filtrem pelo usuario autenticado.
+1. Integrar budgets, goals e dashboard reais no frontend.
+2. Testar fluxo diario no celular.
+3. Depois, preparar deploy.
 
 ## Checklist Pessoal
 

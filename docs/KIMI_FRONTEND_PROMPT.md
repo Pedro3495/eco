@@ -7,7 +7,7 @@ Voce vai trabalhar no projeto Eco em `D:\projetos\Eco`, uma PWA de financas pess
 Backend:
 
 - Java 21, Spring Boot 3.5.14, PostgreSQL, Flyway, JPA.
-- Security temporariamente liberado.
+- Security ativo com JWT; endpoints privados exigem `Authorization: Bearer <accessToken>`.
 - Base local: `http://localhost:8080/api`.
 - Endpoints atuais: contas, categorias, transacoes, resumo mensal.
 - Contrato: leia `docs/API_CONTRACT.md`.

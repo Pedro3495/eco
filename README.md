@@ -41,7 +41,7 @@ Eco/
     README.md
 ```
 
-O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui dashboard e gerenciamento de transacoes integrados com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
+O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui login, dashboard e gerenciamento de transacoes integrados com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
 
 ## Stack
 
@@ -50,7 +50,7 @@ O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja
 - Java 21
 - Spring Boot 3.5.14
 - Spring Web
-- Spring Security instalado, temporariamente liberado com `permitAll`
+- Spring Security com JWT nos endpoints privados
 - Spring Data JPA / Hibernate
 - Bean Validation
 - Springdoc OpenAPI
@@ -198,28 +198,51 @@ O contrato inicial da API esta em [API_CONTRACT.md](./docs/API_CONTRACT.md).
 
 ## Status Atual
 
-Backend implementado ate agora:
+MVP funcional local concluido.
 
-- migrations Flyway para `categories`, `accounts` e `transactions`;
+Backend:
+
+- migrations Flyway para `users`, `refresh_tokens`, `categories`, `accounts`, `transactions`, `monthly_budgets`, `category_budgets` e `goals`;
+- seed local do usuario `dev@eco.com`;
+- auth JWT com login, refresh, logout e `/auth/me`;
+- filtro JWT conectado ao Spring Security;
+- endpoints privados protegidos por Bearer token;
 - CRUD de categorias;
 - CRUD de contas;
 - CRUD de transacoes;
+- isolamento dos dados financeiros por usuario autenticado (`user_id`);
 - filtros em `GET /api/transactions`;
 - paginacao em `GET /api/transactions`;
 - regra de compatibilidade entre tipo da categoria e tipo da transacao;
+- transferencias entre contas;
+- compras parceladas;
+- resumo de cartao por `billingMonth`;
+- budgets mensais e por categoria;
+- goals com progresso manual;
+- dashboard completo em `/api/dashboard`;
 - resumo mensal em `GET /api/reports/monthly-summary`;
 - tratamento global de erros;
+- tratamento de erro `401 Unauthorized` para requests sem autenticacao;
 - testes unitarios de services;
-- primeiro teste de controller com `@WebMvcTest`;
+- testes de controller com `@WebMvcTest`;
+- teste unitario do filtro JWT;
 - CI configurado para rodar testes.
 
 Frontend:
 
+- tela `/login`;
+- armazenamento local de `accessToken` e `refreshToken`;
+- client HTTP com header `Authorization: Bearer <accessToken>`;
+- tentativa de refresh token quando a API retorna `401`;
+- redirect para `/login` quando a sessao expira;
+- logout basico;
 - Next.js com dashboard integrado ao backend;
 - client HTTP em `frontend/src/lib/api.ts`;
 - fallback para mocks quando o backend esta desligado;
 - criacao de transacao pelo dashboard;
 - tela `/transactions` com filtros, paginacao, criacao, edicao e exclusao;
+- telas `/budgets` e `/goals` lendo API real com fallback mockado;
+- criacao/atualizacao simples de budgets e goals pelo frontend;
 - PWA base com manifest, tema mobile e icone.
 
 A ordem sugerida de implementacao esta em [BACKLOG.md](./docs/BACKLOG.md).
@@ -275,18 +298,49 @@ Se precisar trocar a URL da API, crie `frontend/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 ```
 
+## Usuario Local
+
+```text
+email: dev@eco.com
+senha: 123456
+```
+
+## Validacao Local
+
+Backend:
+
+```powershell
+cd backend
+$env:JAVA_HOME='C:\Program Files\Java\jdk-21.0.11'
+.\mvnw.cmd test
+```
+
+Frontend:
+
+```powershell
+cd frontend
+npm run build
+```
+
 ## Versao Demonstravel
 
-O projeto ja possui uma primeira versao funcional full stack para portfolio:
+O projeto possui uma versao MVP funcional full stack para portfolio:
 
 - cadastro e listagem de contas/categorias via backend;
 - CRUD de transacoes;
-- dashboard mensal simples;
+- transferencias;
+- parcelamento;
+- cartao por fatura;
+- budgets;
+- goals;
+- dashboard mensal completo;
 - filtros e paginacao de transacoes;
 - frontend responsivo com PWA base;
+- login frontend integrado ao backend;
+- refresh token no client HTTP;
 - testes backend e build frontend.
 
-Ainda nao e o MVP completo descrito no escopo. Faltam autenticacao, usuario real, transferencias, cartao, orcamentos, metas, dashboard completo e deploy.
+Ainda faltam polish, teste manual em celular, screenshots e deploy publico.
 
 ## Regras Financeiras Importantes
 
@@ -346,3 +400,6 @@ Documentos atuais:
 - [BACKLOG.md](./docs/BACKLOG.md)
 - [API_CONTRACT.md](./docs/API_CONTRACT.md)
 - [JR_BACKEND_NOTES.md](./docs/JR_BACKEND_NOTES.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [SECURITY.md](./SECURITY.md)
+- [LICENSE](./LICENSE)

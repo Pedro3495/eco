@@ -13,6 +13,8 @@ Formato:
 - Meses em `YYYY-MM`.
 - Valores monetarios como numero decimal.
 - Autenticacao por Bearer Token nos endpoints privados.
+- Endpoints financeiros usam sempre o usuario autenticado do token.
+- Usuario dev local: `dev@eco.com` / `123456`.
 
 Header:
 
@@ -54,7 +56,7 @@ Response `200`:
   "accessToken": "jwt-access-token",
   "refreshToken": "refresh-token",
   "tokenType": "Bearer",
-  "expiresIn": 3600,
+  "expiresIn": 900,
   "user": {
     "id": "b8a7f4e1-8a23-4c2a-8c27-442d0aab0001",
     "name": "Usuario",
@@ -80,7 +82,12 @@ Response `200`:
   "accessToken": "new-jwt-access-token",
   "refreshToken": "new-refresh-token",
   "tokenType": "Bearer",
-  "expiresIn": 3600
+  "expiresIn": 900,
+  "user": {
+    "id": "b8a7f4e1-8a23-4c2a-8c27-442d0aab0001",
+    "name": "Usuario",
+    "email": "usuario@email.com"
+  }
 }
 ```
 
@@ -109,6 +116,13 @@ Response `200`:
 ```
 
 ## Accounts
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- consulta e grava apenas dados do usuario autenticado;
+- nomes de contas sao unicos por usuario, nao globalmente.
 
 Enums:
 
@@ -189,6 +203,15 @@ Regra: arquiva a conta, nao apaga fisicamente.
 
 ### GET `/accounts/{id}/balance?from=2026-05-01&to=2026-05-31`
 
+Retorna saldo da conta no periodo informado, considerando saldo inicial, receitas, despesas e transferencias.
+
+Query params:
+
+```text
+from=2026-05-01
+to=2026-05-31
+```
+
 Response `200`:
 
 ```json
@@ -203,7 +226,29 @@ Response `200`:
 }
 ```
 
+Formula:
+
+```text
+balance = initialBalance + income - expense + transferIn - transferOut
+```
+
+Regras:
+
+- A conta precisa pertencer ao usuario autenticado.
+- `income` soma transacoes `INCOME` da conta no periodo.
+- `expense` soma transacoes `EXPENSE` da conta no periodo.
+- `transferIn` soma transacoes `TRANSFER` em que a conta e destino.
+- `transferOut` soma transacoes `TRANSFER` em que a conta e origem.
+- Transacoes inativas nao entram no calculo.
+
 ## Categories
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- consulta e grava apenas dados do usuario autenticado;
+- nomes de categorias sao unicos por usuario, nao globalmente.
 
 Enums:
 
@@ -271,11 +316,18 @@ Regra: arquiva a categoria.
 
 ## Transactions
 
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- consulta e grava apenas dados do usuario autenticado;
+- `accountId` e `categoryId` precisam pertencer ao usuario autenticado.
+
 Enums:
 
 ```text
-TransactionType atual: INCOME, EXPENSE
-Planejado futuro: TRANSFER, TransactionSource, CategoryOrigin
+TransactionType atual: INCOME, EXPENSE, TRANSFER
+Planejado futuro: TransactionSource, CategoryOrigin
 ```
 
 ### GET `/transactions`
@@ -305,6 +357,7 @@ Response `200`:
       "amount": 85.90,
       "type": "EXPENSE",
       "occurredAt": "2026-05-05",
+      "billingMonth": null,
       "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
       "accountName": "Conta Principal",
       "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
@@ -363,6 +416,8 @@ Regra atual:
 - Categoria `EXPENSE` so aceita transacao `EXPENSE`.
 - Categoria `INCOME` so aceita transacao `INCOME`.
 - Categoria `BOTH` aceita ambos.
+- Conta `CREDIT_CARD` com despesa exige `billingMonth`.
+- Conta que nao e `CREDIT_CARD` nao deve enviar `billingMonth`.
 
 ### PUT `/transactions/{id}`
 
@@ -398,9 +453,9 @@ Request:
   "fromAccountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
   "toAccountId": "4c657ef7-b84d-452e-9e5e-75d5de410003",
   "amount": 500.00,
-  "transactionDate": "2026-05-10",
+  "occurredAt": "2026-05-10",
   "description": "Reserva para investimento",
-  "notes": null
+  "note": null
 }
 ```
 
@@ -409,22 +464,28 @@ Response `201`:
 ```json
 {
   "id": "2bcb6ec7-16e4-4f1a-b387-350cf8690002",
-  "type": "TRANSFER",
-  "amount": 500.00,
-  "transactionDate": "2026-05-10",
   "description": "Reserva para investimento",
-  "account": {
-    "id": "4c657ef7-b84d-452e-9e5e-75d5de410001",
-    "name": "Conta Principal",
-    "type": "CHECKING"
-  },
-  "transferAccount": {
-    "id": "4c657ef7-b84d-452e-9e5e-75d5de410003",
-    "name": "Investimentos",
-    "type": "INVESTMENT"
-  }
+  "amount": 500.00,
+  "type": "TRANSFER",
+  "occurredAt": "2026-05-10",
+  "accountId": "4c657ef7-b84d-452e-9e5e-75d5de410001",
+  "accountName": "Conta Principal",
+  "categoryId": null,
+  "categoryName": null,
+  "transferAccountId": "4c657ef7-b84d-452e-9e5e-75d5de410003",
+  "transferAccountName": "Investimentos",
+  "note": null,
+  "active": true
 }
 ```
+
+Regras:
+
+- `fromAccountId` e `toAccountId` precisam pertencer ao usuario autenticado.
+- `fromAccountId` e `toAccountId` devem ser diferentes.
+- Transferencia e salva como uma unica transacao `TRANSFER`.
+- `accountId` representa origem.
+- `transferAccountId` representa destino.
 
 ### POST `/transactions/installments`
 
@@ -436,11 +497,10 @@ Request:
   "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
   "totalAmount": 1000.00,
   "installmentTotal": 5,
-  "firstTransactionDate": "2026-05-20",
+  "firstOccurredAt": "2026-05-20",
   "firstBillingMonth": "2026-06",
   "description": "Compra parcelada",
-  "merchantName": "Loja X",
-  "notes": null
+  "note": null
 }
 ```
 
@@ -452,15 +512,27 @@ Response `201`:
   "items": [
     {
       "id": "2bcb6ec7-16e4-4f1a-b387-350cf8690003",
+      "description": "Compra parcelada 1/5",
       "amount": 200.00,
-      "transactionDate": "2026-05-20",
+      "type": "EXPENSE",
+      "occurredAt": "2026-05-20",
       "billingMonth": "2026-06",
       "installmentNumber": 1,
-      "installmentTotal": 5
+      "installmentTotal": 5,
+      "active": true
     }
   ]
 }
 ```
+
+Regras:
+
+- Parcelamento cria transacoes `EXPENSE`.
+- Cada parcela recebe o mesmo `installmentGroupId`.
+- `installmentNumber` comeca em 1.
+- `billingMonth` avanca um mes por parcela.
+- Se a divisao gerar centavos quebrados, a diferenca fica na ultima parcela.
+- No estado atual, parcelamento exige conta `CREDIT_CARD`.
 
 ### GET `/transactions/card-summary?billingMonth=2026-06`
 
@@ -470,18 +542,24 @@ Response `200`:
 {
   "billingMonth": "2026-06",
   "total": 1320.00,
-  "transactionsCount": 8,
-  "byCategory": [
-    {
-      "categoryId": "2ef8b7cc-9e57-4a7a-9582-ff2609170001",
-      "categoryName": "Alimentacao",
-      "total": 420.00
-    }
-  ]
+  "transactionsCount": 8
 }
 ```
 
+Regras:
+
+- Soma apenas transacoes `EXPENSE`.
+- Usa `billingMonth`, nao `occurredAt`.
+- Ignora transacoes inativas.
+- Filtra pelo usuario autenticado.
+
 ## Reports
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- soma apenas transacoes do usuario autenticado.
 
 ### GET `/reports/monthly-summary?year=2026&month=5`
 
@@ -510,9 +588,16 @@ Regras:
 - `expense` soma transacoes `EXPENSE` ativas no mes.
 - `balance` e `income - expense`.
 - Datas consideradas vao do primeiro ao ultimo dia do mes.
+- Transacoes de outros usuarios nao entram no calculo.
 - Valores monetarios usam `BigDecimal` no backend.
 
 ## Budgets
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- consulta e grava apenas budgets do usuario autenticado.
 
 ### GET `/budgets/{month}`
 
@@ -535,6 +620,8 @@ Response `200`:
 }
 ```
 
+Response `404`: quando o budget mensal ainda nao existe.
+
 ### PUT `/budgets/{month}`
 
 Request:
@@ -546,6 +633,8 @@ Request:
 ```
 
 Response `200`: objeto de budget.
+
+Regra: cria o budget mensal se ele ainda nao existir; se existir, atualiza `generalLimit`.
 
 ### PUT `/budgets/{month}/categories/{categoryId}`
 
@@ -566,6 +655,8 @@ Response `200`:
   "limitAmount": 1200.00
 }
 ```
+
+Regra: cria o budget mensal automaticamente se ele ainda nao existir.
 
 ### DELETE `/budgets/{month}/categories/{categoryId}`
 
@@ -593,9 +684,23 @@ Response `200`:
 }
 ```
 
-Regra: orcamento considera apenas despesas. Despesas de cartao entram pelo `billingMonth`.
+Regras:
+
+- Orcamento considera apenas despesas.
+- Receitas e transferencias nao entram no gasto do budget.
+- Despesas comuns entram pelo `occurredAt` dentro do mes.
+- Despesas de cartao entram pelo `billingMonth`.
+- Transacoes inativas nao entram.
+- Percentual usa `spentAmount / limitAmount * 100`.
+- Se o limite for nulo ou zero, o percentual retorna `0`.
 
 ## Goals
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- consulta e grava apenas metas do usuario autenticado.
 
 Enums:
 
@@ -621,6 +726,8 @@ Response `200`:
 ]
 ```
 
+Regra: retorna metas do usuario autenticado, exceto metas `ARCHIVED`.
+
 ### POST `/goals`
 
 Request:
@@ -635,6 +742,14 @@ Request:
 ```
 
 Response `201`: objeto de meta.
+
+Regra: se `currentAmount >= targetAmount`, a meta nasce como `COMPLETED`; caso contrario, nasce como `ACTIVE`.
+
+### GET `/goals/{id}`
+
+Response `200`: objeto de meta.
+
+Response `404`: quando a meta nao existe ou pertence a outro usuario.
 
 ### PUT `/goals/{id}`
 
@@ -664,6 +779,8 @@ Request:
 
 Response `200`: objeto atualizado.
 
+Regra: atualiza apenas `currentAmount`. Se atingir ou passar `targetAmount`, status vira `COMPLETED`.
+
 ### DELETE `/goals/{id}`
 
 Response `204`.
@@ -671,6 +788,12 @@ Response `204`.
 Regra: arquiva a meta.
 
 ## Dashboard
+
+Status de seguranca:
+
+- endpoint privado;
+- requer `Authorization: Bearer <accessToken>`;
+- soma apenas dados do usuario autenticado.
 
 ### GET `/dashboard/monthly?month=2026-05`
 
@@ -698,6 +821,15 @@ Response `200`:
 }
 ```
 
+Regras:
+
+- `income` soma receitas ativas por `occurredAt`.
+- `expense` soma despesas comuns por `occurredAt` e despesas de cartao por `billingMonth`.
+- `creditCardTotal` soma apenas despesas de cartao do `billingMonth`.
+- `result = income - expense`.
+- `budget.spentAmount` usa a mesma despesa total do dashboard.
+- `goals` retorna metas nao arquivadas com percentual de progresso.
+
 ### GET `/dashboard/categories?month=2026-05`
 
 Response `200`:
@@ -712,6 +844,13 @@ Response `200`:
   }
 ]
 ```
+
+Regras:
+
+- Agrupa apenas despesas ativas por categoria.
+- Despesas comuns entram por `occurredAt`.
+- Despesas de cartao entram por `billingMonth`.
+- `percentage` representa a participacao da categoria no total de despesas do mes.
 
 ### GET `/dashboard/cash-flow?from=2026-01&to=2026-05`
 
@@ -733,6 +872,14 @@ Response `200`:
   }
 ]
 ```
+
+Regras:
+
+- Retorna um item por mes entre `from` e `to`, inclusive.
+- Receitas entram por `occurredAt`.
+- Despesas comuns entram por `occurredAt`.
+- Despesas de cartao entram por `billingMonth`.
+- `result = income - expense`.
 
 ## Regras Criticas
 

@@ -30,7 +30,7 @@ npm run dev
 Abrir:
 
 ```text
-http://localhost:3000
+http://localhost:3000/login
 ```
 
 Por padrão, o frontend usa:
@@ -57,6 +57,11 @@ docker compose up -d
 
 ## Funcionalidades Atuais
 
+- Tela `/login` integrada ao `POST /auth/login`.
+- Tokens salvos em `localStorage`.
+- Client HTTP autenticado com `Authorization: Bearer <accessToken>`.
+- Redirect para `/login` quando nao ha token ou quando a API retorna `401`.
+- Logout basico com `POST /auth/logout`.
 - Dashboard integrado ao backend com gráficos (fluxo de caixa, gastos por categoria).
 - Resumo mensal via `GET /reports/monthly-summary`.
 - Últimas transações via `GET /transactions`.
@@ -75,6 +80,7 @@ docker compose up -d
 
 ```text
 src/app/page.tsx                  <- Dashboard
+src/app/login/page.tsx            <- Login
 src/app/transactions/page.tsx     <- Transações
 src/app/accounts/page.tsx         <- Contas (mock)
 src/app/categories/page.tsx       <- Categorias (mock)
@@ -86,6 +92,8 @@ src/components/MetricCard.tsx
 src/components/ProgressBar.tsx
 src/components/BottomNav.tsx
 src/components/FAB.tsx
+src/components/AuthGuard.tsx
+src/components/LogoutButton.tsx
 src/components/ThemeToggle.tsx
 src/components/PageShell.tsx
 src/lib/api.ts
@@ -110,8 +118,9 @@ npm run start
 
 ## Pendências Frontend
 
-- Tela de login quando auth/JWT existir no backend.
-- Client HTTP autenticado com Bearer token e refresh token.
+- Refresh token automatico quando o access token expirar.
+- Redirecionar `/login` para `/` quando ja existir token valido.
+- Usar `/auth/me` para mostrar nome/email do usuario logado.
 - Service worker/offline cache mais completo.
 
 ## Decisões de Design e UX

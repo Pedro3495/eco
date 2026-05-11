@@ -15,6 +15,11 @@ Ja implementado:
 - Java 21 + Spring Boot 3.5.14.
 - PostgreSQL + Flyway.
 - Migrations para `categories`, `accounts` e `transactions`.
+- Migrations para `users` e `refresh_tokens`.
+- Seed local do usuario `dev@eco.com`.
+- Auth JWT com `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` e `GET /auth/me`.
+- Filtro JWT conectado ao Spring Security.
+- Endpoints privados protegidos por Bearer token.
 - CRUD de categorias.
 - CRUD de contas.
 - CRUD de transacoes de receita/despesa.
@@ -25,18 +30,19 @@ Ja implementado:
 - Resumo mensal simples em `GET /api/reports/monthly-summary`.
 - Tratamento global de erros.
 - Testes unitarios de services.
-- Teste de controller para reports.
+- Testes de controller para reports, auth e seguranca.
+- Teste unitario do filtro JWT.
 
 Ainda nao implementado:
 
-- Auth/JWT e usuario.
+- Escopo por usuario em contas, categorias e transacoes.
 - Transferencias.
 - Cartao/fatura/billingMonth.
 - Parcelamento.
 - Budgets.
 - Goals.
 - Dashboard completo.
-- Integracao frontend real.
+- Refresh token automatico no frontend.
 
 ## Decisoes Do MVP
 
@@ -692,8 +698,9 @@ UX prioritaria:
 2. Configurar PostgreSQL via Docker Compose.
 3. Configurar Flyway.
 4. Criar `User`.
-5. Criar auth JWT.
-6. Criar seed de usuario inicial.
+5. Criar auth JWT. `[feito]`
+6. Criar seed de usuario inicial. `[feito]`
+7. Associar dados financeiros ao usuario autenticado. `[proximo]`
 
 ### Fase 2 - Cadastros
 
