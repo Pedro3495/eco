@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { AuthGuard } from "@/components/AuthGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -46,7 +47,9 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Pular para conteúdo principal
         </a>
-        <div id="main-content">{children}</div>
+        <div id="main-content">
+          <AuthGuard>{children}</AuthGuard>
+        </div>
       </body>
     </html>
   );
