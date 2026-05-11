@@ -18,8 +18,9 @@ import {
   TrendingDown
 } from "lucide-react";
 import { TransactionModal } from "@/components/TransactionModal";
-import { BottomNav } from "@/components/BottomNav";
+import { AppFrame } from "@/components/AppFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LogoutButton } from "@/components/LogoutButton";
 import { formatCurrency } from "@/lib/format";
 import {
   accounts as mockAccounts,
@@ -291,7 +292,7 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <main className="shell">
+      <AppFrame title="Transacoes">
         <header className="topbar">
           <div className="brand">
             <div className="brand-mark" aria-hidden="true">E</div>
@@ -308,6 +309,7 @@ export default function TransactionsPage() {
               </span>
             )}
             <ThemeToggle />
+            <LogoutButton />
             <button
               className="button secondary"
               type="button"
@@ -328,7 +330,7 @@ export default function TransactionsPage() {
                 </span>
               )}
             </button>
-            <button className="button primary hidden-sm" type="button" onClick={openCreateModal}>
+            <button className="button primary" type="button" onClick={openCreateModal}>
               <Plus size={16} aria-hidden="true" /> Nova
             </button>
           </div>
@@ -510,9 +512,8 @@ export default function TransactionsPage() {
             onSubmit={handleModalSubmit}
           />
         )}
-      </main>
+      </AppFrame>
 
-      <BottomNav />
     </>
   );
 }

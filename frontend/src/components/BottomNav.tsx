@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, ReceiptText, Wallet, Tag, Target } from "lucide-react";
+import { Home, ReceiptText, Wallet, Tag, Target, LogOut } from "lucide-react";
+import { logout } from "@/lib/api";
 
 const navItems = [
   { href: "/", label: "Início", icon: Home },
@@ -14,6 +15,11 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+
+  async function handleLogout() {
+    await logout();
+    window.location.href = "/login";
+  }
 
   return (
     <nav className="bottom-nav" aria-label="Navegação principal">
@@ -32,6 +38,10 @@ export function BottomNav() {
           </Link>
         );
       })}
+      <button className="bottom-nav-item" type="button" onClick={handleLogout} aria-label="Sair">
+        <LogOut size={20} aria-hidden="true" />
+        <span>Sair</span>
+      </button>
     </nav>
   );
 }

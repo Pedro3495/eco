@@ -37,8 +37,9 @@ import {
 } from "@/mocks/finance-data";
 import { TransactionModal } from "@/components/TransactionModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LogoutButton } from "@/components/LogoutButton";
 import { FAB } from "@/components/FAB";
-import { BottomNav } from "@/components/BottomNav";
+import { AppFrame } from "@/components/AppFrame";
 import { Card } from "@/components/Card";
 import { MetricCard } from "@/components/MetricCard";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -49,17 +50,25 @@ import {
   Category,
   CreateTransactionRequest,
   createTransaction,
+  DashboardCashFlow,
+  DashboardCategory,
+  DashboardMonthly,
   getAccounts,
   getCategories,
-  getMonthlySummary,
+  getDashboardCashFlow,
+  getDashboardCategories,
+  getDashboardMonthly,
   getTransactions,
-  MonthlySummary,
   Transaction
 } from "@/lib/api";
 
 const dashboardMonth = new Date();
 const dashboardYear = dashboardMonth.getFullYear();
 const dashboardMonthNumber = dashboardMonth.getMonth() + 1;
+const dashboardMonthParam = `${dashboardYear}-${String(dashboardMonthNumber).padStart(2, "0")}`;
+const cashFlowStart = new Date(dashboardMonth);
+cashFlowStart.setMonth(cashFlowStart.getMonth() - 4);
+const cashFlowStartParam = `${cashFlowStart.getFullYear()}-${String(cashFlowStart.getMonth() + 1).padStart(2, "0")}`;
 const dashboardMonthLabel = new Intl.DateTimeFormat("pt-BR", {
   month: "long",
   year: "numeric"
@@ -84,7 +93,9 @@ const itemVariants = {
 };
 
 export default function Home() {
-  const [summary, setSummary] = useState<MonthlySummary | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardMonthly | null>(null);
+  const [dashboardCategories, setDashboardCategories] = useState<DashboardCategory[]>([]);
+  const [cashFlow, setCashFlow] = useState<DashboardCashFlow[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,8 +120,10 @@ export default function Home() {
       setIsMockFallback(false);
 
       try {
-        const [summaryData, txData, accountsData, categoriesData] = await Promise.all([
-          getMonthlySummary(dashboardYear, dashboardMonthNumber),
+        const [dashboardData, dashboardCategoryData, cashFlowDataResponse, txData, accountsData, categoriesData] = await Promise.all([
+          getDashboardMonthly(dashboardMonthParam),
+          getDashboardCategories(dashboardMonthParam),
+          getDashboardCashFlow(cashFlowStartParam, dashboardMonthParam),
           getTransactions({ page: 0, size: 10 }),
           getAccounts(),
           getCategories()
@@ -118,7 +131,9 @@ export default function Home() {
 
         if (cancelled) return;
 
-        setSummary(summaryData);
+        setDashboard(dashboardData);
+        setDashboardCategories(dashboardCategoryData);
+        setCashFlow(cashFlowDataResponse);
         setTransactions(txData.items);
         setAccounts(accountsData);
         setCategories(categoriesData);
@@ -126,11 +141,34 @@ export default function Home() {
         if (cancelled) return;
 
         void err;
-        setSummary({
+        setDashboard({
+          month: dashboardMonthParam,
           income: mockMonthlySummary.income,
           expense: mockMonthlySummary.expense,
-          balance: mockMonthlySummary.result
+          result: mockMonthlySummary.result,
+          creditCardTotal: mockMonthlySummary.creditCardTotal,
+          budget: {
+            generalLimit: budgets.reduce((sum, b) => sum + b.limit, 0),
+            spentAmount: budgets.reduce((sum, b) => sum + b.spent, 0),
+            usagePercent: mockMonthlySummary.budgetUsage
+          },
+          goals: goals
+            .filter((goal) => goal.status !== "ARCHIVED")
+            .map((goal) => ({
+              id: goal.id,
+              name: goal.name,
+              progressPercent: (goal.currentAmount / goal.targetAmount) * 100
+            }))
         });
+        setDashboardCategories(
+          categorySpending.map((category) => ({
+            categoryId: category.name,
+            categoryName: category.name,
+            total: category.total,
+            percentage: 0
+          }))
+        );
+        setCashFlow(cashFlowData);
         setTransactions(
           mockTransactions.map((t) => ({
             id: t.id,
@@ -152,17 +190,21 @@ export default function Home() {
     return () => { cancelled = true; };
   }, []);
 
-  const summaryIncome = summary?.income ?? 0;
-  const summaryExpense = summary?.expense ?? 0;
-  const summaryBalance = summary?.balance ?? 0;
+  const summaryIncome = dashboard?.income ?? 0;
+  const summaryExpense = dashboard?.expense ?? 0;
+  const summaryBalance = dashboard?.result ?? 0;
 
   async function refreshDashboard() {
     try {
-      const [summaryData, txData] = await Promise.all([
-        getMonthlySummary(dashboardYear, dashboardMonthNumber),
+      const [dashboardData, dashboardCategoryData, cashFlowDataResponse, txData] = await Promise.all([
+        getDashboardMonthly(dashboardMonthParam),
+        getDashboardCategories(dashboardMonthParam),
+        getDashboardCashFlow(cashFlowStartParam, dashboardMonthParam),
         getTransactions({ page: 0, size: 10 })
       ]);
-      setSummary(summaryData);
+      setDashboard(dashboardData);
+      setDashboardCategories(dashboardCategoryData);
+      setCashFlow(cashFlowDataResponse);
       setTransactions(txData.items);
       setIsMockFallback(false);
     } catch {
@@ -197,13 +239,33 @@ export default function Home() {
     }
   }
 
-  const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
-  const activeGoals = goals.filter((g) => g.status === "ACTIVE");
+  const totalBudget = dashboard?.budget.generalLimit ?? budgets.reduce((sum, b) => sum + b.limit, 0);
+  const totalSpent = dashboard?.budget.spentAmount ?? budgets.reduce((sum, b) => sum + b.spent, 0);
+  const activeGoals = dashboard?.goals ?? goals
+    .filter((g) => g.status === "ACTIVE")
+    .map((goal) => ({
+      id: goal.id,
+      name: goal.name,
+      progressPercent: (goal.currentAmount / goal.targetAmount) * 100
+    }));
+  const budgetUsage = dashboard?.budget.usagePercent ?? mockMonthlySummary.budgetUsage;
+  const chartCategorySpending = dashboardCategories.length > 0
+    ? dashboardCategories.map((category, index) => ({
+        name: category.categoryName,
+        total: category.total,
+        color: categorySpending[index % categorySpending.length]?.color ?? "#2A9D8F"
+      }))
+    : categorySpending;
+  const chartCashFlow = cashFlow.length > 0
+    ? cashFlow.map((item) => ({
+        ...item,
+        month: item.month.slice(5)
+      }))
+    : cashFlowData;
 
   return (
     <>
-      <main className="shell">
+      <AppFrame title="Dashboard">
         {/* Header */}
         <motion.header
           className="topbar"
@@ -226,6 +288,7 @@ export default function Home() {
               </span>
             )}
             <ThemeToggle />
+            <LogoutButton />
             <button
               className="button primary hidden-sm"
               type="button"
@@ -267,7 +330,7 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>Orçamento</p>
-                  <p className="text-lg font-bold tabular" style={{ marginTop: 4 }}>{formatPercent(mockMonthlySummary.budgetUsage)}</p>
+                  <p className="text-lg font-bold tabular" style={{ marginTop: 4 }}>{formatPercent(budgetUsage)}</p>
                 </div>
               </div>
             </Card>
@@ -275,7 +338,7 @@ export default function Home() {
 
           {/* Métricas */}
           <motion.div variants={itemVariants} style={{ marginTop: 16 }}>
-            <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            <div className="metric-grid">
               <MetricCard
                 label={<><TrendingUp size={14} aria-hidden="true" /> Receitas</>}
                 value={formatCurrency(summaryIncome)}
@@ -307,7 +370,7 @@ export default function Home() {
               <div className="chart-container">
                 {chartsReady && (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-                    <AreaChart data={cashFlowData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <AreaChart data={chartCashFlow} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#0ECD74" stopOpacity={0.2}/>
@@ -415,7 +478,7 @@ export default function Home() {
                 <div className="chart-container-sm">
                   {chartsReady && (
                     <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
-                      <BarChart data={categorySpending} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                      <BarChart data={chartCategorySpending} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" horizontal={false} />
                       <XAxis type="number" hide />
                       <YAxis
@@ -436,7 +499,7 @@ export default function Home() {
                         formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value)}
                       />
                       <Bar dataKey="total" radius={[0, 6, 6, 0]} barSize={18}>
-                        {categorySpending.map((entry, index) => (
+                        {chartCategorySpending.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Bar>
@@ -461,7 +524,14 @@ export default function Home() {
                     label="Geral"
                     variant={totalSpent / totalBudget > 0.9 ? "warning" : "default"}
                   />
-                  {budgets.map((budget) => (
+                  {(dashboardCategories.length > 0
+                    ? dashboardCategories.map((category) => ({
+                        category: category.categoryName,
+                        spent: category.total,
+                        limit: category.total
+                      }))
+                    : budgets
+                  ).map((budget) => (
                     <ProgressBar
                       key={budget.category}
                       value={budget.spent}
@@ -490,10 +560,10 @@ export default function Home() {
                   {activeGoals.map((goal) => (
                     <ProgressBar
                       key={goal.id}
-                      value={goal.currentAmount}
-                      max={goal.targetAmount}
+                      value={goal.progressPercent}
+                      max={100}
                       label={goal.name}
-                      variant={goal.currentAmount >= goal.targetAmount ? "positive" : "default"}
+                      variant={goal.progressPercent >= 100 ? "positive" : "default"}
                     />
                   ))}
                 </div>
@@ -517,7 +587,7 @@ export default function Home() {
                 </div>
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
                   <p className="text-3xl font-extrabold tabular text-negative" style={{ margin: 0 }}>
-                    {formatCurrency(mockMonthlySummary.creditCardTotal)}
+                    {formatCurrency(dashboard?.creditCardTotal ?? mockMonthlySummary.creditCardTotal)}
                   </p>
                   <p className="text-sm text-muted" style={{ marginTop: 8 }}>
                     Vence em 10/06/2026
@@ -547,11 +617,11 @@ export default function Home() {
                       <div>
                         <strong className="text-sm">{goal.name}</strong>
                         <p className="text-sm text-muted" style={{ margin: "2px 0 0" }}>
-                          {formatCurrency(goal.currentAmount)} de {formatCurrency(goal.targetAmount)}
+                          {formatPercent(goal.progressPercent)}
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-primary">
-                        {((goal.currentAmount / goal.targetAmount) * 100).toFixed(0)}%
+                        {goal.progressPercent.toFixed(0)}%
                       </span>
                     </div>
                   ))}
@@ -571,10 +641,9 @@ export default function Home() {
             onSubmit={handleCreateTransaction}
           />
         )}
-      </main>
+      </AppFrame>
 
       <FAB onClick={openTransactionModal} disabled={isMockFallback} />
-      <BottomNav />
     </>
   );
 }
