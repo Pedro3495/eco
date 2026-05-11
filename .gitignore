@@ -33,4 +33,6 @@ frontend/pnpm-debug.log*
 
 # Test results / local assets
 frontend/test-results/
-my-video/
+my-video/node_modules/
+my-video/.next/
+my-video/out/
