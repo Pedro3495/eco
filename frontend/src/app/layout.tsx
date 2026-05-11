@@ -1,9 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter"
+});
 
 export const metadata: Metadata = {
   title: "Eco Finanças",
-  description: "PWA pessoal de controle financeiro. Acompanhe receitas, despesas e metas de forma simples.",
+  description: "PWA pessoal de controle financeiro. Acompanhe receitas, despesas, orçamentos e metas de forma simples e elegante.",
   applicationName: "Eco Finanças",
   appleWebApp: {
     capable: true,
@@ -21,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#5B42C5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -34,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={inter.variable}>
         <a href="#main-content" className="skip-link">
           Pular para conteúdo principal
         </a>

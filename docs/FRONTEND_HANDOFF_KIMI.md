@@ -1,6 +1,6 @@
 # Eco - Handoff Para Frontend Com Kimi/opencode
 
-Use este arquivo como contexto rapido para integrar o frontend Next.js ao backend Spring Boot.
+Use este arquivo como contexto rápido para integrar o frontend Next.js ao backend Spring Boot.
 
 ## Estado Atual
 
@@ -8,7 +8,7 @@ Backend:
 
 - Base URL local: `http://localhost:8080/api`
 - Spring Security esta temporariamente liberado com `permitAll`.
-- Ainda nao ha JWT/login real.
+- Ainda não há JWT/login real.
 - PostgreSQL local precisa estar rodando.
 - API retorna JSON.
 
@@ -16,6 +16,8 @@ Frontend:
 
 - Next.js em `frontend/`
 - Tela atual usa mocks em `frontend/src/mocks/finance-data.ts`
+- Design system premium com dark mode, animações (Framer Motion) e gráficos (Recharts).
+- Telas: `/`, `/transactions`, `/accounts`, `/categories`, `/budgets`, `/goals`
 - Primeiro objetivo: substituir mocks por chamadas HTTP reais, sem redesenhar a UI inteira.
 
 ## Endpoints Prontos Para Integracao
@@ -119,6 +121,15 @@ Formato:
 ]
 ```
 
+## Telas com Mocks (Aguardando Backend)
+
+As seguintes telas usam dados mockados e precisam ser integradas quando os endpoints estiverem prontos:
+
+- `/accounts` — usa `mockAccounts` de `finance-data.ts`. Endpoint futuro: `GET /accounts` já existe, mas a tela ainda usa mocks para `currentBalance` e `initialBalance`.
+- `/categories` — usa `mockCategories`. Endpoint futuro: `GET /categories` já existe.
+- `/budgets` — usa `mockBudgets`. Endpoints futuros: `GET /budgets/{month}`, `GET /budgets/{month}/summary`.
+- `/goals` — usa `mockGoals`. Endpoints futuros: `GET /goals`.
+
 ## Primeira Integracao Recomendada
 
 1. Criar `frontend/src/lib/api.ts`.
@@ -170,3 +181,4 @@ GET, POST, PUT, DELETE, OPTIONS
 - O campo de resultado no frontend mockado chama `result`, mas a API retorna `balance`.
 - A data da transacao na API chama `occurredAt`.
 - Categoria/conta em transacao vêm como `categoryName` e `accountName`.
+- Ao integrar novos endpoints, manter o fallback para mocks quando a API estiver indisponível.

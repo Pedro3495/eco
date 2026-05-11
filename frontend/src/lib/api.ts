@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+const REQUEST_TIMEOUT_MS = 5000;
 
 export interface MonthlySummary {
   income: number;
@@ -90,7 +91,17 @@ export class ApiError extends Error {
 }
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, { cache: "no-store", ...options });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+
+  try {
+    res = await fetch(url, { cache: "no-store", ...options, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+
   if (!res.ok) {
     let errorBody: ApiErrorBody | null = null;
 

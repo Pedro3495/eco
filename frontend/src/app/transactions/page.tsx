@@ -2,9 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Pencil,
+  Plus,
+  Receipt,
+  Trash2,
+  SlidersHorizontal,
+  X,
+  TrendingUp,
+  TrendingDown
+} from "lucide-react";
 import { TransactionModal } from "@/components/TransactionModal";
+import { BottomNav } from "@/components/BottomNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatCurrency } from "@/lib/format";
+import {
+  accounts as mockAccounts,
+  categories as mockCategories,
+  transactions as mockTransactions
+} from "@/mocks/finance-data";
 import {
   Account,
   ApiError,
@@ -61,6 +82,16 @@ export default function TransactionsPage() {
   const [modalTransaction, setModalTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMockFallback, setIsMockFallback] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 640);
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   async function loadData(nextPage = page, nextFilters = filters) {
     setLoading(true);
@@ -87,9 +118,31 @@ export default function TransactionsPage() {
       setCategories(categoriesData);
       setTransactionsPage(txData);
       setPage(txData.page);
+      setIsMockFallback(false);
     } catch (err) {
-      console.error("Falha ao carregar transações:", err);
-      setError(getErrorMessage(err, "Não foi possível carregar as transações."));
+      void err;
+      const fallbackItems = mockTransactions.map((transaction) => ({
+        id: transaction.id,
+        description: transaction.description,
+        amount: transaction.amount,
+        type: transaction.type as "INCOME" | "EXPENSE",
+        occurredAt: transaction.date,
+        accountName: transaction.account,
+        categoryName: transaction.category
+      }));
+
+      setAccounts(mockAccounts as Account[]);
+      setCategories(mockCategories as Category[]);
+      setTransactionsPage({
+        items: fallbackItems,
+        page: 0,
+        size: fallbackItems.length,
+        totalItems: fallbackItems.length,
+        totalPages: 1
+      });
+      setPage(0);
+      setIsMockFallback(true);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -106,12 +159,14 @@ export default function TransactionsPage() {
   async function applyFilters() {
     setPage(0);
     await loadData(0, filters);
+    if (isMobile) setShowFilters(false);
   }
 
   async function clearFilters() {
     setFilters(initialFilters);
     setPage(0);
     await loadData(0, initialFilters);
+    if (isMobile) setShowFilters(false);
   }
 
   function openCreateModal() {
@@ -181,184 +236,283 @@ export default function TransactionsPage() {
   const canGoBack = page > 0;
   const canGoForward = totalPages > 0 && page + 1 < totalPages;
 
-  return (
-    <main className="shell">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark" aria-hidden="true">E</div>
-          <div>
-            <p className="eyebrow">Eco Finanças</p>
-            <strong>Transações</strong>
-          </div>
-        </div>
-        <div className="toolbar">
-          <Link className="button secondary" href="/">
-            Dashboard
-          </Link>
-          <button className="button" type="button" onClick={openCreateModal}>
-            <Plus size={16} aria-hidden="true" /> Nova transação
-          </button>
-        </div>
-      </header>
+  const activeFiltersCount = Object.values(filters).filter((v) => v !== "" && v !== undefined).length;
 
-      <section className="panel card filters-panel" aria-label="Filtros de transações">
-        <div className="filters-grid">
-          <label htmlFor="filter-start-date">
-            Início
-            <input
-              id="filter-start-date"
-              type="date"
-              value={filters.startDate}
-              onChange={(event) => updateFilter("startDate", event.target.value)}
-            />
-          </label>
-          <label htmlFor="filter-end-date">
-            Fim
-            <input
-              id="filter-end-date"
-              type="date"
-              value={filters.endDate}
-              onChange={(event) => updateFilter("endDate", event.target.value)}
-            />
-          </label>
-          <label htmlFor="filter-type">
-            Tipo
-            <select id="filter-type" value={filters.type} onChange={(event) => updateFilter("type", event.target.value)}>
-              <option value="">Todos</option>
-              <option value="EXPENSE">Despesa</option>
-              <option value="INCOME">Receita</option>
-            </select>
-          </label>
-          <label htmlFor="filter-account">
-            Conta
-            <select id="filter-account" value={filters.accountId} onChange={(event) => updateFilter("accountId", event.target.value)}>
-              <option value="">Todas</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>{account.name}</option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor="filter-category">
-            Categoria
-            <select id="filter-category" value={filters.categoryId} onChange={(event) => updateFilter("categoryId", event.target.value)}>
-              <option value="">Todas</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="filters-actions">
-          <button className="button secondary" type="button" onClick={clearFilters}>
-            Limpar
-          </button>
-          <button className="button" type="button" onClick={applyFilters}>
-            Filtrar
-          </button>
-        </div>
-      </section>
-
-      <section className="panel card" aria-label="Lista de transações">
-        <div className="card-header row">
-          <div>
-            <span className="section-label">Histórico</span>
-            <h2>Movimentos cadastrados</h2>
-          </div>
-          {transactionsPage && (
-            <span className="muted">{transactionsPage.totalItems} registro(s)</span>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="loading-state" aria-busy="true" aria-live="polite">
-            <Loader2 size={20} className="spin" aria-hidden="true" />
-            <span>Carregando transações...</span>
-          </div>
-        ) : error ? (
-          <div className="empty-state" role="alert">
-            <AlertCircle size={20} aria-hidden="true" />
-            <span>{error}</span>
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="empty-state">
-            <Receipt size={20} aria-hidden="true" />
-            <span>Nenhuma transação encontrada.</span>
-          </div>
-        ) : (
-          <div className="transaction-list" role="list">
-            {transactions.map((transaction) => (
-              <div className="transaction-row transaction-row--actions" role="listitem" key={transaction.id}>
-                <div className="transaction-info">
-                  <strong className="transaction-desc">{transaction.description}</strong>
-                  <span className="transaction-meta">
-                    {transaction.categoryName} · {transaction.accountName} · {formatDate(transaction.occurredAt)}
-                  </span>
-                </div>
-                <strong className={transaction.type === "INCOME" ? "value-positive" : "value-negative"}>
-                  {transaction.type === "INCOME" ? "+" : "-"}
-                  {formatCurrency(transaction.amount)}
-                </strong>
-                <div className="row-actions">
-                  <button
-                    className="icon-button"
-                    type="button"
-                    onClick={() => openEditModal(transaction)}
-                    aria-label={`Editar transação ${transaction.description}`}
-                    disabled={actionLoading}
-                  >
-                    <Pencil size={16} aria-hidden="true" />
-                  </button>
-                  <button
-                    className="icon-button danger"
-                    type="button"
-                    onClick={() => handleDelete(transaction)}
-                    aria-label={`Excluir transação ${transaction.description}`}
-                    disabled={actionLoading}
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
+  function FilterFields() {
+    return (
+      <>
+        <label htmlFor="filter-start-date">
+          Início
+          <input
+            id="filter-start-date"
+            type="date"
+            value={filters.startDate}
+            onChange={(event) => updateFilter("startDate", event.target.value)}
+          />
+        </label>
+        <label htmlFor="filter-end-date">
+          Fim
+          <input
+            id="filter-end-date"
+            type="date"
+            value={filters.endDate}
+            onChange={(event) => updateFilter("endDate", event.target.value)}
+          />
+        </label>
+        <label htmlFor="filter-type">
+          Tipo
+          <select id="filter-type" value={filters.type} onChange={(event) => updateFilter("type", event.target.value)}>
+            <option value="">Todos</option>
+            <option value="EXPENSE">Despesa</option>
+            <option value="INCOME">Receita</option>
+          </select>
+        </label>
+        <label htmlFor="filter-account">
+          Conta
+          <select id="filter-account" value={filters.accountId} onChange={(event) => updateFilter("accountId", event.target.value)}>
+            <option value="">Todas</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>{account.name}</option>
             ))}
+          </select>
+        </label>
+        <label htmlFor="filter-category">
+          Categoria
+          <select id="filter-category" value={filters.categoryId} onChange={(event) => updateFilter("categoryId", event.target.value)}>
+            <option value="">Todas</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+        </label>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <main className="shell">
+        <header className="topbar">
+          <div className="brand">
+            <div className="brand-mark" aria-hidden="true">E</div>
+            <div>
+              <p className="eyebrow">Eco Finanças</p>
+              <strong>Transações</strong>
+            </div>
           </div>
+          <div className="toolbar">
+            {isMockFallback && (
+              <span className="demo-badge" title="Dados de demonstração">
+                <AlertCircle size={12} aria-hidden="true" />
+                modo demonstração
+              </span>
+            )}
+            <ThemeToggle />
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => setShowFilters((s) => !s)}
+              aria-label="Filtros"
+            >
+              <SlidersHorizontal size={16} aria-hidden="true" />
+              {activeFiltersCount > 0 && (
+                <span style={{
+                  background: "var(--primary)",
+                  color: "#fff",
+                  borderRadius: "999px",
+                  padding: "1px 6px",
+                  fontSize: "0.7rem",
+                  fontWeight: 700
+                }}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+            <button className="button primary hidden-sm" type="button" onClick={openCreateModal}>
+              <Plus size={16} aria-hidden="true" /> Nova
+            </button>
+          </div>
+        </header>
+
+        {/* Desktop Filters */}
+        {!isMobile && showFilters && (
+          <section className="panel card filters-panel" aria-label="Filtros de transações">
+            <div className="filters-grid">
+              <FilterFields />
+            </div>
+            <div className="filters-actions">
+              <button className="button secondary" type="button" onClick={clearFilters}>
+                Limpar
+              </button>
+              <button className="button primary" type="button" onClick={applyFilters}>
+                Filtrar
+              </button>
+            </div>
+          </section>
         )}
 
-        <div className="pagination">
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => goToPage(page - 1)}
-            disabled={!canGoBack || loading}
-            aria-label="Página anterior"
-          >
-            <ChevronLeft size={16} aria-hidden="true" /> Anterior
-          </button>
-          <span className="muted" aria-live="polite">
-            Página {totalPages === 0 ? 0 : page + 1} de {totalPages}
-          </span>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => goToPage(page + 1)}
-            disabled={!canGoForward || loading}
-            aria-label="Próxima página"
-          >
-            Próxima <ChevronRight size={16} aria-hidden="true" />
-          </button>
-        </div>
-      </section>
+        {/* Mobile Filter Drawer */}
+        <AnimatePresence>
+          {isMobile && showFilters && (
+            <>
+              <motion.div
+                className="drawer-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowFilters(false)}
+              />
+              <motion.div
+                className="drawer"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              >
+                <div className="drawer-handle" />
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                  <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700 }}>Filtros</h2>
+                  <button className="icon-button" type="button" onClick={() => setShowFilters(false)} aria-label="Fechar filtros">
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="filters-grid" style={{ gridTemplateColumns: "1fr" }}>
+                  <FilterFields />
+                </div>
+                <div className="filters-actions" style={{ flexDirection: "column", marginTop: 16 }}>
+                  <button className="button primary" type="button" onClick={applyFilters}>
+                    Aplicar filtros
+                  </button>
+                  <button className="button secondary" type="button" onClick={clearFilters}>
+                    Limpar
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
-      {isModalOpen && (
-        <TransactionModal
-          accounts={accounts}
-          categories={categories}
-          transaction={modalTransaction}
-          saving={actionLoading}
-          error={modalError}
-          onClose={closeModal}
-          onSubmit={handleModalSubmit}
-        />
-      )}
-    </main>
+        <section className="panel card" aria-label="Lista de transações">
+          <div className="card-header row">
+            <div>
+              <span className="section-label">Histórico</span>
+              <h2>Movimentos cadastrados</h2>
+            </div>
+            {transactionsPage && (
+              <span className="muted">{transactionsPage.totalItems} registro(s)</span>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="loading-state" aria-busy="true" aria-live="polite">
+              <Loader2 size={20} className="spin" aria-hidden="true" />
+              <span>Carregando transações...</span>
+            </div>
+          ) : error ? (
+            <div className="empty-state" role="alert">
+              <AlertCircle size={20} aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="empty-state">
+              <Receipt size={20} aria-hidden="true" />
+              <span>Nenhuma transação encontrada.</span>
+            </div>
+          ) : (
+            <div className="transaction-list" role="list" style={{ gap: 8 }}>
+              {transactions.map((transaction, i) => (
+                <motion.div
+                  key={transaction.id}
+                  className="transaction-card"
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: i * 0.03 }}
+                >
+                  <div
+                    className="transaction-card-icon"
+                    style={{
+                      background: transaction.type === "INCOME" ? "var(--positive-soft)" : "var(--negative-soft)",
+                      color: transaction.type === "INCOME" ? "var(--accent-positive)" : "var(--accent-negative)"
+                    }}
+                  >
+                    {transaction.type === "INCOME" ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                  </div>
+                  <div className="transaction-card-body">
+                    <div className="transaction-card-title">{transaction.description}</div>
+                    <div className="transaction-card-subtitle">
+                      {transaction.categoryName} · {transaction.accountName} · {formatDate(transaction.occurredAt)}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <strong className={`transaction-card-value ${transaction.type === "INCOME" ? "text-positive" : "text-negative"}`}>
+                      {transaction.type === "INCOME" ? "+" : "-"}
+                      {formatCurrency(transaction.amount)}
+                    </strong>
+                    <div className="row-actions">
+                      <button
+                        className="icon-button"
+                        type="button"
+                        onClick={() => openEditModal(transaction)}
+                        aria-label={`Editar transação ${transaction.description}`}
+                        disabled={actionLoading}
+                      >
+                        <Pencil size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        className="icon-button danger"
+                        type="button"
+                        onClick={() => handleDelete(transaction)}
+                        aria-label={`Excluir transação ${transaction.description}`}
+                        disabled={actionLoading}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          <div className="pagination">
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => goToPage(page - 1)}
+              disabled={!canGoBack || loading}
+              aria-label="Página anterior"
+            >
+              <ChevronLeft size={16} aria-hidden="true" /> Anterior
+            </button>
+            <span className="muted" aria-live="polite">
+              Página {totalPages === 0 ? 0 : page + 1} de {totalPages}
+            </span>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => goToPage(page + 1)}
+              disabled={!canGoForward || loading}
+              aria-label="Próxima página"
+            >
+              Próxima <ChevronRight size={16} aria-hidden="true" />
+            </button>
+          </div>
+        </section>
+
+        {isModalOpen && (
+          <TransactionModal
+            accounts={accounts}
+            categories={categories}
+            transaction={modalTransaction}
+            saving={actionLoading}
+            error={modalError}
+            onClose={closeModal}
+            onSubmit={handleModalSubmit}
+          />
+        )}
+      </main>
+
+      <BottomNav />
+    </>
   );
 }

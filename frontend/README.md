@@ -7,14 +7,17 @@ Frontend em Next.js do Eco, um PWA pessoal de controle financeiro.
 - Next.js 16
 - React 19
 - TypeScript
-- CSS puro
-- Lucide React
+- CSS puro (design tokens + dark mode)
+- Recharts (gráficos)
+- Framer Motion (animações)
+- Lucide React (ícones)
 
 ## Rodar Localmente
 
 Instalar dependências:
 
 ```powershell
+cd frontend
 npm install
 ```
 
@@ -54,7 +57,7 @@ docker compose up -d
 
 ## Funcionalidades Atuais
 
-- Dashboard integrado ao backend.
+- Dashboard integrado ao backend com gráficos (fluxo de caixa, gastos por categoria).
 - Resumo mensal via `GET /reports/monthly-summary`.
 - Últimas transações via `GET /transactions`.
 - Criação de transação via `POST /transactions`.
@@ -63,16 +66,32 @@ docker compose up -d
 - Exclusão via `DELETE /transactions/{id}`.
 - Fallback para mocks quando a API está indisponível no dashboard.
 - PWA base com manifest, tema mobile e ícone.
+- Dark mode com toggle persistente.
+- Bottom navigation no mobile.
+- FAB (Floating Action Button) para nova transação no mobile.
+- Telas adicionais: `/accounts`, `/categories`, `/budgets`, `/goals` (com mocks).
 
 ## Estrutura Relevante
 
 ```text
-src/app/page.tsx
-src/app/transactions/page.tsx
+src/app/page.tsx                  <- Dashboard
+src/app/transactions/page.tsx     <- Transações
+src/app/accounts/page.tsx         <- Contas (mock)
+src/app/categories/page.tsx       <- Categorias (mock)
+src/app/budgets/page.tsx          <- Orçamentos (mock)
+src/app/goals/page.tsx            <- Metas (mock)
 src/components/TransactionModal.tsx
+src/components/Card.tsx
+src/components/MetricCard.tsx
+src/components/ProgressBar.tsx
+src/components/BottomNav.tsx
+src/components/FAB.tsx
+src/components/ThemeToggle.tsx
+src/components/PageShell.tsx
 src/lib/api.ts
 src/lib/format.ts
 src/mocks/finance-data.ts
+src/app/globals.css               <- Design system + dark mode
 ```
 
 ## Scripts
@@ -93,10 +112,7 @@ npm run start
 
 - Tela de login quando auth/JWT existir no backend.
 - Client HTTP autenticado com Bearer token e refresh token.
-- Telas dedicadas de contas e categorias.
-- Telas de orçamentos e metas quando os endpoints existirem.
 - Service worker/offline cache mais completo.
-- Refinos visuais para portfolio, screenshots e responsividade final.
 
 ## Decisões de Design e UX
 
@@ -104,12 +120,26 @@ npm run start
 
 O layout foi pensado para funcionar bem em telas pequenas antes de desktop:
 
-- O shell reduz padding lateral em mobile (`16px` vs `24px`).
-- O topbar mantém a marca e ações em uma única linha quando possível; em telas muito pequenas (`<380px`) os botões ocupam a largura total.
-- A grid de métricas no dashboard passa de 3 colunas para 1 coluna em mobile.
-- A lista de transações em mobile reorganiza a descrição em linha única, valor à esquerda e ações à direita, evitando overflow de textos longos.
-- Filtros em `/transactions` usam 5 colunas em desktop, 3 em tablet (`<860px`) e 1 coluna em mobile (`<640px`), com botões de ação empilhados em telas pequenas.
+- Shell reduz padding lateral em mobile (`16px` vs `24px`).
+- Topbar mantém a marca e ações em uma única linha quando possível; em telas muito pequenas (`<380px`) os botões ocupam a largura total.
+- Grid de métricas no dashboard passa de 3 colunas para 1 coluna em mobile.
+- Lista de transações em mobile usa cards individuais em vez de linhas, facilitando o toque.
+- Filtros em `/transactions` usam drawer slide-up no mobile e painel expandido no desktop.
 - Paginação empilha botões em mobile para não haver overflow horizontal.
+- Bottom navigation fixa no mobile para navegação rápida.
+- FAB fixo no canto inferior direito para ação principal (nova transação).
+
+### Dark Mode
+
+- Variáveis CSS duplas (`:root` e `[data-theme="dark"]`).
+- Toggle persiste em `localStorage` e respeita `prefers-color-scheme`.
+- Todos os componentes usam tokens CSS, garantindo consistência.
+
+### Animações
+
+- Framer Motion para entrada de cards, modais e listas.
+- CSS transitions para hover e estados interativos.
+- `prefers-reduced-motion` respeitado globalmente.
 
 ### Modal Acessível
 
@@ -122,16 +152,17 @@ O modal de transação implementa padrões de acessibilidade:
 - Trap de foco: `Tab` e `Shift+Tab` circulam apenas entre elementos do modal.
 - Scroll do body é bloqueado enquanto o modal está aberto.
 - `aria-labelledby`, `aria-describedby` e `role="dialog"` são usados.
+- Slide-up no mobile (estilo app nativo), fade+scale no desktop.
 
 ### Acessibilidade Geral
 
 - Skip link permite pular para o conteúdo principal.
-- Todos os botões `icon-only` possuem `aria-label` descritivo (inclusive com o nome da transação nos botões de editar/excluir).
+- Todos os botões `icon-only` possuem `aria-label` descritivo.
 - Ícones decorativos usam `aria-hidden="true"`.
 - Estados de loading usam `aria-busy="true"` e `aria-live="polite"`.
 - Mensagens de erro usam `role="alert"`.
 - Inputs de formulário possuem `htmlFor`/`id` associados.
-- Foco visível usa `box-shadow` azul semitransparente e `outline: none` apenas quando o foco é visível via `:focus-visible`.
+- Foco visível usa `box-shadow` semitransparente e `outline: none` apenas quando o foco é visível via `:focus-visible`.
 - Animações respeitam `prefers-reduced-motion`.
 
 ### PWA
@@ -144,5 +175,5 @@ O modal de transação implementa padrões de acessibilidade:
 
 - Nenhuma biblioteca de UI foi adicionada.
 - Todos os estilos estão em `globals.css`.
-- Variáveis CSS mantêm paleta sóbria e profissional.
+- Variáveis CSS mantêm paleta premium com suporte a dark mode.
 - Estados vazios e loading possuem ícones e alinhamento centralizado.

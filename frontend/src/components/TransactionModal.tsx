@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Loader2, Plus, X } from "lucide-react";
 import {
   Account,
@@ -72,6 +73,14 @@ export function TransactionModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 640);
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     setForm(buildInitialForm(accounts, categories, transaction));
@@ -147,140 +156,160 @@ export function TransactionModal({
     });
   }
 
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 }
+  };
+
   return (
-    <div className="modal-backdrop" role="presentation" onClick={(e) => {
-      if (e.target === e.currentTarget && !saving) {
-        onClose();
-      }
-    }}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="transaction-form-title"
-        aria-describedby={error ? "transaction-form-error" : undefined}
-        ref={modalRef}
+    <AnimatePresence>
+      <motion.div
+        className="modal-backdrop"
+        role="presentation"
+        variants={backdropVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={(e) => {
+          if (e.target === e.currentTarget && !saving) {
+            onClose();
+          }
+        }}
       >
-        <div className="modal-header">
-          <div>
-            <span className="section-label">Transação</span>
-            <h2 id="transaction-form-title">{isEditing ? "Editar transação" : "Nova transação"}</h2>
+        <motion.div
+          className="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="transaction-form-title"
+          aria-describedby={error ? "transaction-form-error" : undefined}
+          ref={modalRef}
+          initial={isMobile ? { y: "100%", opacity: 1 } : { opacity: 0, scale: 0.95, y: 10 }}
+          animate={isMobile ? { y: 0, opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+          exit={isMobile ? { y: "100%", opacity: 1 } : { opacity: 0, scale: 0.95, y: 10 }}
+          transition={isMobile ? { type: "spring" as const, damping: 25, stiffness: 300 } : { duration: 0.25 }}
+        >
+          <div className="modal-header">
+            <div>
+              <span className="section-label">Transação</span>
+              <h2 id="transaction-form-title">{isEditing ? "Editar transação" : "Nova transação"}</h2>
+            </div>
+            <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar modal" disabled={saving}>
+              <X size={18} aria-hidden="true" />
+            </button>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar modal" disabled={saving}>
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
 
-        <form className="transaction-form" onSubmit={handleSubmit}>
-          <label htmlFor="tx-description">
-            Descrição
-            <input
-              id="tx-description"
-              ref={firstInputRef}
-              value={form.description}
-              onChange={(event) => updateForm("description", event.target.value)}
-              required
-              maxLength={120}
-              autoComplete="off"
-            />
-          </label>
-
-          <div className="form-grid">
-            <label htmlFor="tx-amount">
-              Valor
+          <form className="transaction-form" onSubmit={handleSubmit}>
+            <label htmlFor="tx-description">
+              Descrição
               <input
-                id="tx-amount"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.amount}
-                onChange={(event) => updateForm("amount", event.target.value)}
+                id="tx-description"
+                ref={firstInputRef}
+                value={form.description}
+                onChange={(event) => updateForm("description", event.target.value)}
                 required
-                inputMode="decimal"
+                maxLength={120}
+                autoComplete="off"
               />
             </label>
 
-            <label htmlFor="tx-type">
-              Tipo
-              <select id="tx-type" value={form.type} onChange={(event) => updateForm("type", event.target.value)}>
-                <option value="EXPENSE">Despesa</option>
-                <option value="INCOME">Receita</option>
-              </select>
-            </label>
-          </div>
+            <div className="form-grid">
+              <label htmlFor="tx-amount">
+                Valor
+                <input
+                  id="tx-amount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={form.amount}
+                  onChange={(event) => updateForm("amount", event.target.value)}
+                  required
+                  inputMode="decimal"
+                />
+              </label>
 
-          <label htmlFor="tx-date">
-            Data
-            <input
-              id="tx-date"
-              type="date"
-              value={form.occurredAt}
-              onChange={(event) => updateForm("occurredAt", event.target.value)}
-              required
-            />
-          </label>
-
-          <div className="form-grid">
-            <label htmlFor="tx-account">
-              Conta
-              <select
-                id="tx-account"
-                value={form.accountId}
-                onChange={(event) => updateForm("accountId", event.target.value)}
-                required
-              >
-                <option value="" disabled>Selecione</option>
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>{account.name}</option>
-                ))}
-              </select>
-            </label>
-
-            <label htmlFor="tx-category">
-              Categoria
-              <select
-                id="tx-category"
-                value={form.categoryId}
-                onChange={(event) => updateForm("categoryId", event.target.value)}
-                required
-              >
-                <option value="" disabled>Selecione</option>
-                {filteredCategories.map((category) => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <label htmlFor="tx-note">
-            Nota
-            <textarea
-              id="tx-note"
-              value={form.note}
-              onChange={(event) => updateForm("note", event.target.value)}
-              rows={3}
-              maxLength={255}
-            />
-          </label>
-
-          {error && (
-            <div className="form-error" id="transaction-form-error" role="alert">
-              <AlertCircle size={16} aria-hidden="true" />
-              <span>{error}</span>
+              <label htmlFor="tx-type">
+                Tipo
+                <select id="tx-type" value={form.type} onChange={(event) => updateForm("type", event.target.value)}>
+                  <option value="EXPENSE">Despesa</option>
+                  <option value="INCOME">Receita</option>
+                </select>
+              </label>
             </div>
-          )}
 
-          <div className="form-actions">
-            <button className="button secondary" type="button" onClick={onClose} disabled={saving}>
-              Cancelar
-            </button>
-            <button className="button" type="submit" disabled={saving} aria-busy={saving}>
-              {saving ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <label htmlFor="tx-date">
+              Data
+              <input
+                id="tx-date"
+                type="date"
+                value={form.occurredAt}
+                onChange={(event) => updateForm("occurredAt", event.target.value)}
+                required
+              />
+            </label>
+
+            <div className="form-grid">
+              <label htmlFor="tx-account">
+                Conta
+                <select
+                  id="tx-account"
+                  value={form.accountId}
+                  onChange={(event) => updateForm("accountId", event.target.value)}
+                  required
+                >
+                  <option value="" disabled>Selecione</option>
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>{account.name}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label htmlFor="tx-category">
+                Categoria
+                <select
+                  id="tx-category"
+                  value={form.categoryId}
+                  onChange={(event) => updateForm("categoryId", event.target.value)}
+                  required
+                >
+                  <option value="" disabled>Selecione</option>
+                  {filteredCategories.map((category) => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label htmlFor="tx-note">
+              Nota
+              <textarea
+                id="tx-note"
+                value={form.note}
+                onChange={(event) => updateForm("note", event.target.value)}
+                rows={3}
+                maxLength={255}
+              />
+            </label>
+
+            {error && (
+              <div className="form-error" id="transaction-form-error" role="alert">
+                <AlertCircle size={16} aria-hidden="true" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button className="button secondary" type="button" onClick={onClose} disabled={saving}>
+                Cancelar
+              </button>
+              <button className="button primary" type="submit" disabled={saving} aria-busy={saving}>
+                {saving ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
+                Salvar
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

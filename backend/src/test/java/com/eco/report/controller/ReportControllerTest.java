@@ -1,7 +1,9 @@
 package com.eco.report.controller;
 
+import com.eco.auth.service.JwtService;
 import com.eco.report.dto.MonthlySummaryResponse;
 import com.eco.report.service.ReportService;
+import com.eco.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,6 +27,12 @@ class ReportControllerTest {
 
     @MockitoBean
     private ReportService reportService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     void getMonthlySummaryShouldReturnSummary() throws Exception {

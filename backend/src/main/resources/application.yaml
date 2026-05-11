@@ -22,3 +22,9 @@ spring:
 server:
   servlet:
     context-path: /api
+
+eco:
+  auth:
+    jwt-secret: "dev-secret-change-before-production-dev-secret-change-before-production"
+    access-token-seconds: 900
+    refresh-token-seconds: 604800
