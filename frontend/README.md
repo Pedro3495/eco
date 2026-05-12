@@ -58,10 +58,11 @@ docker compose up -d
 ## Funcionalidades Atuais
 
 - Tela `/login` integrada ao `POST /auth/login`.
-- Tokens salvos em `localStorage`.
-- Client HTTP autenticado com `Authorization: Bearer <accessToken>`.
-- Redirect para `/login` quando nao ha token ou quando a API retorna `401`.
-- Logout basico com `POST /auth/logout`.
+- Tokens de autenticacao em cookies HttpOnly emitidos pelo backend.
+- Client HTTP usa `credentials: "include"` para enviar cookies ao backend.
+- Redirect para `/login` quando `/auth/me` falha ou quando a API retorna `401`.
+- Refresh automatico via `POST /auth/refresh` quando o access token expira.
+- Logout com `POST /auth/logout` e limpeza dos cookies pelo backend.
 - Dashboard integrado ao backend com gráficos (fluxo de caixa, gastos por categoria).
 - Resumo mensal via `GET /reports/monthly-summary`.
 - Últimas transações via `GET /transactions`.
@@ -104,6 +105,12 @@ src/app/globals.css               <- Design system + dark mode
 
 ## Scripts
 
+Auditoria de dependencias:
+
+```powershell
+npm audit
+```
+
 Build de produção:
 
 ```powershell
@@ -118,7 +125,6 @@ npm run start
 
 ## Pendências Frontend
 
-- Refresh token automatico quando o access token expirar.
 - Redirecionar `/login` para `/` quando ja existir token valido.
 - Usar `/auth/me` para mostrar nome/email do usuario logado.
 - Service worker/offline cache mais completo.
