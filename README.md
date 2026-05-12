@@ -40,7 +40,7 @@ Eco/
     README.md
 ```
 
-O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja possui login, dashboard e gerenciamento de transacoes integrados com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
+O backend foi implementado em Java/Spring Boot. O frontend possui login, dashboard e telas principais integradas com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
 
 ## Stack
 
@@ -75,7 +75,7 @@ O backend esta sendo implementado manualmente em Java/Spring Boot. O frontend ja
 ### Infraestrutura
 
 - Docker Compose para ambiente local
-- Deploy futuro em plataforma como Render, Railway, Fly.io ou Vercel
+- Execucao local do backend, frontend e PostgreSQL
 
 ### IA Futura
 
@@ -182,7 +182,7 @@ Campos e relacionamentos detalhados estao documentados em [MVP_SCOPE.md](./docs/
 
 ## API
 
-Grupos de endpoints atuais/planejados:
+Grupos de endpoints implementados:
 
 - `/api/accounts`
 - `/api/categories`
@@ -230,6 +230,7 @@ Backend:
 Frontend:
 
 - tela `/login`;
+- telas `/accounts` e `/categories`;
 - armazenamento local de `accessToken` e `refreshToken`;
 - client HTTP com header `Authorization: Bearer <accessToken>`;
 - tentativa de refresh token quando a API retorna `401`;
@@ -297,9 +298,9 @@ Se precisar trocar a URL da API, crie `frontend/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 ```
 
-## Usuario Local
+## Usuario Local De Desenvolvimento
 
-O banco local cria um usuario de desenvolvimento via migration. Para uso real ou deploy publico, remova esse seed e configure usuarios proprios.
+O banco local cria um usuario de desenvolvimento via migration para facilitar testes do fluxo completo de autenticacao.
 
 ## Validacao Local
 
@@ -336,7 +337,7 @@ O projeto possui uma versao MVP funcional full stack para portfolio:
 - refresh token no client HTTP;
 - testes backend e build frontend.
 
-Antes de divulgar uma instancia publica, revise o seed local, configure variaveis de ambiente reais e troque o segredo JWT.
+Este repositorio e uma vitrine de portfolio para execucao local. Para adaptar o projeto para outro ambiente, revise o seed local, configure variaveis de ambiente proprias e troque o segredo JWT.
 
 ## Regras Financeiras Importantes
 
