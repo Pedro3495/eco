@@ -89,15 +89,18 @@ docker compose logs -f postgres
 
 ## Banco Local
 
-Valores padrao do `docker-compose.yml`:
+Valores locais do `docker-compose.yml`:
 
 ```text
 host: localhost
 port: 5432
 database: eco
-user: postgres
-password: postgres
+user: eco_local
+password: eco_local_change_me
 ```
+
+O Postgres local fica bindado em `127.0.0.1`, nao em todas as interfaces da maquina.
+Troque `POSTGRES_PASSWORD` no seu `.env` se a maquina for compartilhada.
 
 Configuracoes sensiveis podem ser sobrescritas por variaveis de ambiente:
 
@@ -108,7 +111,22 @@ SPRING_DATASOURCE_PASSWORD
 ECO_JWT_SECRET
 ECO_ACCESS_TOKEN_SECONDS
 ECO_REFRESH_TOKEN_SECONDS
+ECO_COOKIE_SECURE
 ```
+
+Fora do profile `dev`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`,
+`SPRING_DATASOURCE_PASSWORD` e `ECO_JWT_SECRET` sao obrigatorios. Se algum deles
+nao existir, a aplicacao deve falhar ao iniciar.
+
+Para rodar local com defaults de estudo:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE='dev'
+.\mvnw.cmd spring-boot:run
+```
+
+O usuario `dev@eco.com` e seedado apenas pelo profile `dev`, via migrations em
+`src/main/resources/db/dev-migration`.
 
 Compilar sem rodar testes:
 
@@ -123,6 +141,7 @@ Rodar testes:
 ```
 
 Para `test` passar com a configuracao atual, o PostgreSQL precisa estar acessivel em `localhost:5432/eco`.
+Use o profile `dev` ou exporte as variaveis obrigatorias antes do teste.
 
 Se `JAVA_HOME` nao estiver configurado globalmente:
 
@@ -214,4 +233,6 @@ Escopo tecnico:
 
 ## Publicacao
 
-Antes de publicar uma instancia real, remova ou substitua o seed local de desenvolvimento, configure `ECO_JWT_SECRET` com valor forte e revise CORS.
+Antes de publicar uma instancia real, rode sem profile `dev`, configure `ECO_JWT_SECRET`
+com valor forte, configure credenciais reais do banco, mantenha `ECO_COOKIE_SECURE=true`
+em HTTPS e revise CORS.

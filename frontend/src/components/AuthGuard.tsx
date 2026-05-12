@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { isAuthenticated } from "@/lib/api";
+import { getMe } from "@/lib/api";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,12 +20,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
       return;
     }
 
-    if (!isAuthenticated()) {
-      router.replace("/login");
-      return;
-    }
-
-    setAllowed(true);
+    getMe()
+      .then(() => setAllowed(true))
+      .catch(() => router.replace("/login"));
   }, [pathname, router]);
 
   if (!allowed) {

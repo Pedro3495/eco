@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/eco}
+    username: ${SPRING_DATASOURCE_USERNAME:eco_local}
+    password: ${SPRING_DATASOURCE_PASSWORD:eco_local_change_me}
+
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev-migration
+
+eco:
+  auth:
+    jwt-secret: ${ECO_JWT_SECRET:local-development-secret-change-before-deploying-eco}
+    cookie-secure: ${ECO_COOKIE_SECURE:false}

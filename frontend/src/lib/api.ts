@@ -1,7 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 const REQUEST_TIMEOUT_MS = 5000;
-const ACCESS_TOKEN_KEY = "eco-access-token";
-const REFRESH_TOKEN_KEY = "eco-refresh-token";
 
 export interface MonthlySummary {
   income: number;
@@ -182,28 +180,20 @@ async function fetchJson<T>(url: string, options?: RequestInit, retryOnUnauthori
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const headers = new Headers(options?.headers);
-  const token = getAccessToken();
-
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   let res: Response;
 
   try {
-    res = await fetch(url, { cache: "no-store", ...options, headers, signal: controller.signal });
+    res = await fetch(url, { cache: "no-store", credentials: "include", ...options, headers, signal: controller.signal });
   } finally {
     window.clearTimeout(timeout);
   }
 
   if (res.status === 401 && retryOnUnauthorized && !url.includes("/auth/")) {
     try {
-      const refreshed = await refreshAuthToken();
-      const retryHeaders = new Headers(options?.headers);
-      retryHeaders.set("Authorization", `Bearer ${refreshed.accessToken}`);
-      return fetchJson<T>(url, { ...options, headers: retryHeaders }, false);
+      await refreshAuthToken();
+      return fetchJson<T>(url, options, false);
     } catch {
-      clearAuthTokens();
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
@@ -211,7 +201,6 @@ async function fetchJson<T>(url: string, options?: RequestInit, retryOnUnauthori
   }
 
   if (res.status === 401) {
-    clearAuthTokens();
     if (typeof window !== "undefined" && window.location.pathname !== "/login") {
       window.location.href = "/login";
     }
@@ -241,52 +230,15 @@ async function fetchJson<T>(url: string, options?: RequestInit, retryOnUnauthori
 let refreshPromise: Promise<AuthResponse> | null = null;
 
 async function refreshAuthToken(): Promise<AuthResponse> {
-  const refreshToken = getRefreshToken();
-
-  if (!refreshToken) {
-    throw new ApiError(401, "Sessao expirada");
-  }
-
   if (!refreshPromise) {
     refreshPromise = fetchJson<AuthResponse>(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refreshToken }),
     }, false).finally(() => {
       refreshPromise = null;
     });
   }
 
-  const response = await refreshPromise;
-  saveAuthTokens(response);
-  return response;
-}
-
-export function getAccessToken() {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function getRefreshToken() {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
-export function saveAuthTokens(response: AuthResponse) {
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-}
-
-export function clearAuthTokens() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
-
-export function isAuthenticated() {
-  return Boolean(getAccessToken());
+  return refreshPromise;
 }
 
 export function login(data: LoginRequest): Promise<AuthResponse> {
@@ -300,19 +252,8 @@ export function login(data: LoginRequest): Promise<AuthResponse> {
 }
 
 export function logout(): Promise<void> {
-  const refreshToken = getRefreshToken();
-  clearAuthTokens();
-
-  if (!refreshToken) {
-    return Promise.resolve();
-  }
-
   return fetchJson<void>(`${API_BASE_URL}/auth/logout`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refreshToken }),
   }).catch(() => undefined);
 }
 

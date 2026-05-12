@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,7 +74,13 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.expiresIn").value(900))
                 .andExpect(jsonPath("$.user.id").value(userId.toString()))
                 .andExpect(jsonPath("$.user.name").value("Usuario Dev"))
-                .andExpect(jsonPath("$.user.email").value("dev@eco.com"));
+                .andExpect(jsonPath("$.user.email").value("dev@eco.com"))
+                .andExpect(header().stringValues("Set-Cookie",
+                        org.hamcrest.Matchers.hasItems(
+                                org.hamcrest.Matchers.containsString("eco_access_token=access-token"),
+                                org.hamcrest.Matchers.containsString("HttpOnly"),
+                                org.hamcrest.Matchers.containsString("eco_refresh_token=refresh-token")
+                        )));
     }
 
     @Test

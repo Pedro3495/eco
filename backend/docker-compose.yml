@@ -5,13 +5,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: eco
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-eco_local}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eco_local_change_me}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - eco_postgres_data:/var/lib/postgresql/data
 
 volumes:
   eco_postgres_data:
-

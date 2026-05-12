@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, LockKeyhole, LogIn } from "lucide-react";
-import { ApiError, login, saveAuthTokens } from "@/lib/api";
+import { ApiError, login } from "@/lib/api";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
@@ -19,8 +19,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await login({ email, password });
-      saveAuthTokens(response);
+      await login({ email, password });
       router.replace("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel entrar.");
