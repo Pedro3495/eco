@@ -18,8 +18,8 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: eco
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: eco_ci
+          POSTGRES_PASSWORD: eco_ci_password_for_tests_only
         ports:
           - 5432:5432
         options: >-
@@ -41,6 +41,12 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/eco
+          SPRING_DATASOURCE_USERNAME: eco_ci
+          SPRING_DATASOURCE_PASSWORD: eco_ci_password_for_tests_only
+          ECO_JWT_SECRET: ci-test-secret-change-before-open-source-123456
+          ECO_COOKIE_SECURE: "false"
         run: |
           chmod +x mvnw
           ./mvnw test
