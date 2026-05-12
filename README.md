@@ -1,270 +1,69 @@
 # Eco
 
-Eco e um aplicativo pessoal de controle financeiro com foco em uso diario, organizacao clara dos dados e evolucao futura com inteligencia artificial.
+Eco e um PWA de controle financeiro pessoal, construido como projeto de portfolio full stack com Java/Spring Boot, PostgreSQL e Next.js.
 
-O projeto nasceu para resolver uma necessidade real: acompanhar gastos, receitas, cartao, orcamentos e metas em um PWA acessivel pelo celular e pelo computador. Ao mesmo tempo, funciona como projeto de portfolio e trilha pratica de estudo em Java, Spring Boot, PostgreSQL e desenvolvimento full stack.
-
-## Objetivo
-
-Construir uma plataforma simples, confiavel e evolutiva para financas pessoais.
-
-No MVP, o foco e registrar e visualizar dados manualmente:
-
-- receitas;
-- despesas;
-- transferencias internas;
-- conta bancaria;
-- cartao de credito;
-- categorias;
-- orcamentos mensais;
-- metas financeiras;
-- dashboard mensal.
-
-Funcionalidades mais complexas, como IA ativa, importacao de arquivos, investimentos detalhados e Open Finance, ficam planejadas para fases futuras.
-
-## Estrutura Do Repositorio
-
-```text
-Eco/
-  backend/
-    docker-compose.yml
-    README.md
-  docs/
-    MVP_SCOPE.md
-    BACKLOG.md
-    API_CONTRACT.md
-  frontend/
-    public/
-    src/
-    package.json
-    README.md
-```
-
-O backend foi implementado em Java/Spring Boot. O frontend possui login, dashboard e telas principais integradas com a API real, mantendo fallback mockado para demonstracao quando o backend esta desligado.
+O MVP permite registrar e acompanhar receitas, despesas, transferencias, cartao, orcamentos, metas e dashboard mensal. O foco do projeto e demonstrar organizacao de backend, API REST, autenticacao JWT, regras de negocio financeiras, testes e integracao com frontend responsivo.
 
 ## Stack
 
 ### Backend
 
 - Java 21
-- Spring Boot 3.5.14
-- Spring Web
-- Spring Security com JWT nos endpoints privados
+- Spring Boot 3.5
+- Spring Web, Spring Security e JWT
 - Spring Data JPA / Hibernate
+- PostgreSQL + Flyway
 - Bean Validation
-- Springdoc OpenAPI
-- Flyway
+- Springdoc OpenAPI / Swagger
 - JUnit, Mockito e AssertJ
 - GitHub Actions CI
-
-### Banco De Dados
-
-- PostgreSQL
-- UUID como chave primaria
-- `numeric(14,2)` para valores monetarios
-- migrations versionadas com Flyway
 
 ### Frontend
 
 - Next.js 16
 - React 19
+- TypeScript
 - CSS puro
 - PWA mobile-first
-- Interface responsiva para desktop
+- Recharts
+- Framer Motion
+- Lucide React
 
-### Infraestrutura
+## Funcionalidades Do MVP
 
-- Docker Compose para ambiente local
-- Execucao local do backend, frontend e PostgreSQL
+- Login com JWT, refresh token e logout.
+- Isolamento de dados por usuario autenticado.
+- CRUD de contas, categorias e transacoes.
+- Filtros e paginacao de transacoes.
+- Transferencias entre contas.
+- Compras parceladas.
+- Despesas de cartao por `billingMonth`.
+- Orcamento mensal geral e por categoria.
+- Metas financeiras com progresso manual.
+- Dashboard mensal com resumo, categorias, fluxo de caixa, orcamento e metas.
+- Fallback mockado no frontend quando o backend esta desligado.
+- PWA base com layout responsivo e dark mode.
 
-### IA Futura
-
-- Integracao com API de LLM
-- Sugestao de categorias
-- Analise de gastos
-- Chat financeiro
-- Insights sobre planejamento
-
-## Principios Do Projeto
-
-- Comecar simples e funcional.
-- Evitar complexidade prematura.
-- Manter dados financeiros confiaveis.
-- IA sugere, usuario confirma.
-- O banco de dados e a fonte da verdade.
-- O backend deve ser claro o suficiente para estudo e forte o suficiente para portfolio.
-- Evoluir por fases pequenas e bem testadas.
-
-## Escopo Do MVP
-
-O MVP sera um monolito modular em Spring Boot, com API REST e PostgreSQL.
-
-Funcionalidades previstas:
-
-- autenticacao com JWT;
-- cadastro de contas;
-- cadastro de categorias;
-- lancamento de receitas e despesas;
-- transferencia entre contas;
-- despesas de cartao com mes de fatura;
-- parcelamento simples;
-- orcamento mensal por categoria;
-- limite geral mensal opcional;
-- metas financeiras simples;
-- dashboard mensal;
-- busca simples em transacoes;
-- soft delete para dados financeiros;
-- documentacao da API com OpenAPI/Swagger.
-
-Fora do MVP:
-
-- IA ativa;
-- importacao CSV/XLSX/PDF;
-- Open Finance;
-- investimentos detalhados;
-- fatura completa de cartao;
-- anexos;
-- notificacoes;
-- recorrencias;
-- tags;
-- exportacao de dados.
-
-## Arquitetura Backend
-
-Estrutura planejada:
+## Estrutura
 
 ```text
-src/main/java/com/eco
-  auth/
-  user/
-  account/
-  category/
-  transaction/
-  budget/
-  goal/
-  dashboard/
-  common/
-  config/
+Eco/
+  backend/    Spring Boot API
+  frontend/   Next.js PWA
+  docs/       escopo, backlog e contrato da API
 ```
-
-Cada modulo deve seguir a estrutura tradicional do Spring:
-
-```text
-controller/
-service/
-repository/
-dto/
-model/
-```
-
-Regras gerais:
-
-- controllers finos;
-- services com regras de negocio;
-- repositories para acesso ao banco;
-- DTOs como contrato externo da API;
-- entidades JPA sem regra excessiva;
-- erros padronizados com `@RestControllerAdvice`;
-- validacao de entrada com Bean Validation.
-
-## Entidades Principais
-
-- `User`
-- `RefreshToken`
-- `Account`
-- `Category`
-- `Transaction`
-- `MonthlyBudget`
-- `CategoryBudget`
-- `Goal`
-
-Campos e relacionamentos detalhados estao documentados em [MVP_SCOPE.md](./docs/MVP_SCOPE.md).
-
-## API
-
-Grupos de endpoints implementados:
-
-- `/api/accounts`
-- `/api/categories`
-- `/api/transactions`
-- `/api/reports`
-- `/api/auth`
-- `/api/budgets`
-- `/api/goals`
-- `/api/dashboard`
-
-O contrato inicial da API esta em [API_CONTRACT.md](./docs/API_CONTRACT.md).
-
-## Status Atual
-
-MVP funcional local concluido.
-
-Backend:
-
-- migrations Flyway para `users`, `refresh_tokens`, `categories`, `accounts`, `transactions`, `monthly_budgets`, `category_budgets` e `goals`;
-- seed local de usuario de desenvolvimento;
-- auth JWT com login, refresh, logout e `/auth/me`;
-- filtro JWT conectado ao Spring Security;
-- endpoints privados protegidos por Bearer token;
-- CRUD de categorias;
-- CRUD de contas;
-- CRUD de transacoes;
-- isolamento dos dados financeiros por usuario autenticado (`user_id`);
-- filtros em `GET /api/transactions`;
-- paginacao em `GET /api/transactions`;
-- regra de compatibilidade entre tipo da categoria e tipo da transacao;
-- transferencias entre contas;
-- compras parceladas;
-- resumo de cartao por `billingMonth`;
-- budgets mensais e por categoria;
-- goals com progresso manual;
-- dashboard completo em `/api/dashboard`;
-- resumo mensal em `GET /api/reports/monthly-summary`;
-- tratamento global de erros;
-- tratamento de erro `401 Unauthorized` para requests sem autenticacao;
-- testes unitarios de services;
-- testes de controller com `@WebMvcTest`;
-- teste unitario do filtro JWT;
-- CI configurado para rodar testes.
-
-Frontend:
-
-- tela `/login`;
-- telas `/accounts` e `/categories`;
-- armazenamento local de `accessToken` e `refreshToken`;
-- client HTTP com header `Authorization: Bearer <accessToken>`;
-- tentativa de refresh token quando a API retorna `401`;
-- redirect para `/login` quando a sessao expira;
-- logout basico;
-- Next.js com dashboard integrado ao backend;
-- client HTTP em `frontend/src/lib/api.ts`;
-- fallback para mocks quando o backend esta desligado;
-- criacao de transacao pelo dashboard;
-- tela `/transactions` com filtros, paginacao, criacao, edicao e exclusao;
-- telas `/budgets` e `/goals` lendo API real com fallback mockado;
-- criacao/atualizacao simples de budgets e goals pelo frontend;
-- PWA base com manifest, tema mobile e icone.
-
-A ordem sugerida de implementacao esta em [BACKLOG.md](./docs/BACKLOG.md).
 
 ## Rodar Localmente
 
 ### Backend
 
-Subir PostgreSQL:
-
 ```powershell
 cd backend
 docker compose up -d
-```
-
-Rodar Spring Boot:
-
-```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-API local:
+API:
 
 ```text
 http://localhost:8080/api
@@ -278,21 +77,19 @@ http://localhost:8080/swagger-ui/index.html
 
 ### Frontend
 
-Instalar dependencias e rodar:
-
 ```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-App local:
+App:
 
 ```text
 http://localhost:3000
 ```
 
-Se precisar trocar a URL da API, crie `frontend/.env.local`:
+Se precisar trocar a URL da API:
 
 ```text
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
@@ -302,7 +99,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 
 O banco local cria um usuario de desenvolvimento via migration para facilitar testes do fluxo completo de autenticacao.
 
-## Validacao Local
+## Validacao
 
 Backend:
 
@@ -319,84 +116,35 @@ cd frontend
 npm run build
 ```
 
-## Versao Demonstravel
+Ultima validacao local:
 
-O projeto possui uma versao MVP funcional full stack para portfolio:
+- Backend: 65 testes passando.
+- Frontend: build Next.js passando.
 
-- cadastro e listagem de contas/categorias via backend;
-- CRUD de transacoes;
-- transferencias;
-- parcelamento;
-- cartao por fatura;
-- budgets;
-- goals;
-- dashboard mensal completo;
-- filtros e paginacao de transacoes;
-- frontend responsivo com PWA base;
-- login frontend integrado ao backend;
-- refresh token no client HTTP;
-- testes backend e build frontend.
+## API
+
+Principais grupos de endpoints:
+
+- `/api/auth`
+- `/api/accounts`
+- `/api/categories`
+- `/api/transactions`
+- `/api/budgets`
+- `/api/goals`
+- `/api/dashboard`
+- `/api/reports`
+
+Contrato detalhado: [docs/API_CONTRACT.md](./docs/API_CONTRACT.md)
+
+## Observacoes
 
 Este repositorio e uma vitrine de portfolio para execucao local. Para adaptar o projeto para outro ambiente, revise o seed local, configure variaveis de ambiente proprias e troque o segredo JWT.
 
-## Regras Financeiras Importantes
-
-- Valores monetarios devem usar `BigDecimal` no Java.
-- Nunca usar `double` ou `float` para dinheiro.
-- `amount` deve ser sempre positivo.
-- O tipo da transacao define o sentido financeiro.
-- Transacoes usam `LocalDate`.
-- Campos de auditoria usam `Instant` em UTC.
-- Despesas de cartao usam `billingMonth`.
-- Dashboard e orcamento consideram cartao pelo mes da fatura.
-- Orcamento considera apenas despesas.
-- Transacoes deletadas usam soft delete.
-
-## IA No Projeto
-
-A IA nao entra como fonte de verdade.
-
-No futuro, ela podera:
-
-- sugerir categoria de transacao;
-- explicar gastos;
-- responder perguntas sobre os dados;
-- apontar anomalias;
-- sugerir melhorias de planejamento;
-- apoiar analise de investimentos.
-
-Ela nao deve:
-
-- criar transacoes sem confirmacao;
-- editar dados automaticamente;
-- apagar informacoes;
-- alterar orcamentos ou metas sem aprovacao.
-
-## Roadmap Futuro
-
-- Importacao CSV.
-- Sugestao de categorias com IA.
-- Analise mensal com IA.
-- Chat financeiro com dados do PostgreSQL.
-- Importacao XLSX.
-- Importacao PDF.
-- Investimentos detalhados.
-- Open Finance.
-- Exportacao CSV.
-- Historico completo de alteracoes.
-- Anexos e comprovantes.
-- Notificacoes.
-- Lancamentos recorrentes.
-- Tags.
-
 ## Documentos
 
-Documentos atuais:
-
-- [MVP_SCOPE.md](./docs/MVP_SCOPE.md)
-- [BACKLOG.md](./docs/BACKLOG.md)
-- [API_CONTRACT.md](./docs/API_CONTRACT.md)
-- [JR_BACKEND_NOTES.md](./docs/JR_BACKEND_NOTES.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [SECURITY.md](./SECURITY.md)
-- [LICENSE](./LICENSE)
+- [Escopo do MVP](./docs/MVP_SCOPE.md)
+- [Backlog](./docs/BACKLOG.md)
+- [Contrato da API](./docs/API_CONTRACT.md)
+- [Notas de estudo backend](./docs/JR_BACKEND_NOTES.md)
+- [Seguranca](./SECURITY.md)
+- [Contribuicao](./CONTRIBUTING.md)
