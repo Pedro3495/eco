@@ -31,6 +31,9 @@ frontend/pnpm-debug.log*
 # Research / local captures
 .firecrawl/
 
+# Local learning notes
+docs/JR_BACKEND_NOTES.md
+
 # Test results / local assets
 frontend/test-results/
 my-video/node_modules/
