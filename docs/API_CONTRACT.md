@@ -14,7 +14,7 @@ Formato:
 - Valores monetarios como numero decimal.
 - Autenticacao por Bearer Token nos endpoints privados.
 - Endpoints financeiros usam sempre o usuario autenticado do token.
-- Usuario dev local: `dev@eco.com` / `123456`.
+- O projeto cria um usuario local de desenvolvimento via migration. Ajuste/remova esse seed antes de publicar uma instancia real.
 
 Header:
 

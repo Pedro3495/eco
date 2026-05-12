@@ -99,6 +99,17 @@ user: postgres
 password: postgres
 ```
 
+Configuracoes sensiveis podem ser sobrescritas por variaveis de ambiente:
+
+```text
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+ECO_JWT_SECRET
+ECO_ACCESS_TOKEN_SECONDS
+ECO_REFRESH_TOKEN_SECONDS
+```
+
 Compilar sem rodar testes:
 
 ```powershell
@@ -129,6 +140,10 @@ http://localhost:8080/api
 
 Implementado:
 
+- `POST /auth/login`
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `GET /auth/me`
 - `GET /categories`
 - `GET /categories/{id}`
 - `POST /categories`
@@ -144,26 +159,31 @@ Implementado:
 - `POST /transactions`
 - `PUT /transactions/{id}`
 - `DELETE /transactions/{id}`
+- `POST /transactions/transfers`
+- `POST /transactions/installments`
+- `GET /transactions/card-summary?billingMonth=2026-05`
+- `GET /budgets/{month}`
+- `PUT /budgets/{month}`
+- `PUT /budgets/{month}/categories/{categoryId}`
+- `DELETE /budgets/{month}/categories/{categoryId}`
+- `GET /budgets/{month}/summary`
+- `GET /goals`
+- `POST /goals`
+- `GET /goals/{id}`
+- `PUT /goals/{id}`
+- `PATCH /goals/{id}/progress`
+- `DELETE /goals/{id}`
+- `GET /dashboard/monthly?month=2026-05`
+- `GET /dashboard/categories?month=2026-05`
+- `GET /dashboard/cash-flow?months=6`
 - `GET /reports/monthly-summary?year=2026&month=5`
 
 ## Testes
 
-Testes atuais:
+Rodar a suite completa antes de publicar:
 
-- `CategoryServiceTest`
-- `AccountServiceTest`
-- `TransactionServiceTest`
-- `ReportServiceTest`
-- `ReportControllerTest`
-- `EcoBackendApplicationTests`
-
-Ultimo estado conhecido:
-
-```text
-Tests run: 23
-Failures: 0
-Errors: 0
-BUILD SUCCESS
+```powershell
+.\mvnw.cmd test
 ```
 
 ## CORS
@@ -180,11 +200,6 @@ Metodos liberados:
 GET, POST, PUT, DELETE, OPTIONS
 ```
 
-## Proximas Etapas Backend
-
-- integrar frontend com Kimi/opencode usando `docs/FRONTEND_HANDOFF_KIMI.md`;
-- depois implementar auth/JWT, budgets, goals e features avancadas.
-
 Contrato de API:
 
 ```text
@@ -197,20 +212,6 @@ Escopo tecnico:
 ../docs/MVP_SCOPE.md
 ```
 
-## O Que A IA Nao Deve Fazer Aqui
+## Publicacao
 
-- Implementar entidades por voce sem pedido explicito.
-- Implementar services completos por voce sem revisao.
-- Escrever regras de negocio centrais no seu lugar.
-
-## Como Usar A IA Aqui
-
-Use a IA para:
-
-- revisar seu codigo;
-- explicar erros;
-- sugerir testes;
-- ajudar a debugar;
-- comparar alternativas;
-- apontar melhorias de portfolio;
-- explicar conceitos de Spring Boot.
+Antes de publicar uma instancia real, remova ou substitua o seed local de desenvolvimento, configure `ECO_JWT_SECRET` com valor forte e revise CORS.

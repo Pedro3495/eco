@@ -29,7 +29,6 @@ Eco/
   backend/
     docker-compose.yml
     README.md
-    TODO_BACKEND.md
   docs/
     MVP_SCOPE.md
     BACKLOG.md
@@ -189,7 +188,7 @@ Grupos de endpoints atuais/planejados:
 - `/api/categories`
 - `/api/transactions`
 - `/api/reports`
-- `/api/auth` futuro
+- `/api/auth`
 - `/api/budgets`
 - `/api/goals`
 - `/api/dashboard`
@@ -203,7 +202,7 @@ MVP funcional local concluido.
 Backend:
 
 - migrations Flyway para `users`, `refresh_tokens`, `categories`, `accounts`, `transactions`, `monthly_budgets`, `category_budgets` e `goals`;
-- seed local do usuario `dev@eco.com`;
+- seed local de usuario de desenvolvimento;
 - auth JWT com login, refresh, logout e `/auth/me`;
 - filtro JWT conectado ao Spring Security;
 - endpoints privados protegidos por Bearer token;
@@ -300,10 +299,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 
 ## Usuario Local
 
-```text
-email: dev@eco.com
-senha: 123456
-```
+O banco local cria um usuario de desenvolvimento via migration. Para uso real ou deploy publico, remova esse seed e configure usuarios proprios.
 
 ## Validacao Local
 
@@ -340,7 +336,7 @@ O projeto possui uma versao MVP funcional full stack para portfolio:
 - refresh token no client HTTP;
 - testes backend e build frontend.
 
-Ainda faltam polish, teste manual em celular, screenshots e deploy publico.
+Antes de divulgar uma instancia publica, revise o seed local, configure variaveis de ambiente reais e troque o segredo JWT.
 
 ## Regras Financeiras Importantes
 

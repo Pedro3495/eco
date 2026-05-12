@@ -8,8 +8,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("dev@eco.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
             <LockKeyhole size={22} />
           </div>
           <h1 id="login-title">Acesse sua carteira</h1>
-          <p>Use o usuario dev local para testar o fluxo JWT do backend.</p>
+          <p>Entre com seu usuario local para acessar o painel financeiro.</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

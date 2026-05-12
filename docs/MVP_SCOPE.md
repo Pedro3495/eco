@@ -16,7 +16,7 @@ Ja implementado:
 - PostgreSQL + Flyway.
 - Migrations para `categories`, `accounts` e `transactions`.
 - Migrations para `users` e `refresh_tokens`.
-- Seed local do usuario `dev@eco.com`.
+- Seed local de usuario de desenvolvimento.
 - Auth JWT com `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` e `GET /auth/me`.
 - Filtro JWT conectado ao Spring Security.
 - Endpoints privados protegidos por Bearer token.

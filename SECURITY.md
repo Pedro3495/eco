@@ -15,9 +15,8 @@ Nao publique tokens, senhas reais ou dados financeiros reais em issues.
 
 ## Cuidados Locais
 
-- Nao commitar `.env.local`.
-- Trocar `JWT_SECRET` fora do ambiente de desenvolvimento.
+- Nao commitar `.env`, `.env.local` ou dados financeiros reais.
+- Trocar `ECO_JWT_SECRET` fora do ambiente de desenvolvimento.
 - Usar HTTPS em deploy real.
 - Revisar CORS antes de producao.
 - Usar senhas fortes para usuarios reais.
-
