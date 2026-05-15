@@ -55,6 +55,12 @@ Eco/
 
 ## Rodar Localmente
 
+Pre-requisitos:
+
+- JDK 21 com `JAVA_HOME` apontando para o JDK.
+- Docker Desktop ativo.
+- Node.js LTS.
+
 ### Backend
 
 ```powershell
@@ -166,6 +172,5 @@ Para deploy publico real, rode sem profile `dev`, use HTTPS, mantenha
 - [Escopo do MVP](./docs/MVP_SCOPE.md)
 - [Backlog](./docs/BACKLOG.md)
 - [Contrato da API](./docs/API_CONTRACT.md)
-- [Notas de estudo backend](./docs/JR_BACKEND_NOTES.md)
 - [Seguranca](./SECURITY.md)
 - [Contribuicao](./CONTRIBUTING.md)

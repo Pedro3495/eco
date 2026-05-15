@@ -125,6 +125,9 @@ $env:SPRING_PROFILES_ACTIVE='dev'
 .\mvnw.cmd spring-boot:run
 ```
 
+Sem `.env`, o profile `dev` usa os mesmos defaults do `docker-compose.yml`:
+`eco_local` / `eco_local_change_me`.
+
 O usuario `dev@eco.com` e seedado apenas pelo profile `dev`, via migrations em
 `src/main/resources/db/dev-migration`.
 
